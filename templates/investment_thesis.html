@@ -1,0 +1,656 @@
+{% extends 'base.html' %}
+
+{% block title %}Investment Thesis: {{ stock_info.name }} ({{ symbol }}) - StockSense AI{% endblock %}
+
+{% block content %}
+<div class="thesis-container py-1">
+    <div class="container-fluid px-2">
+        <!-- Stock Header -->
+        <div class="card border-0 shadow-sm mb-1">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <div class="d-flex align-items-center">
+                            <div class="stock-logo me-3">
+                                <i class="fas fa-chart-line fa-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0 fw-bold">{{ stock_info.name }}</h3>
+                                <div class="text-muted">{{ symbol }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <div class="d-flex align-items-center mb-1">
+                                <h4 class="mb-0 me-3">${{ stock_info.price if stock_info.price else 'N/A' }}</h4>
+                                {% if stock_info.get('change_percent') is not none %}
+                                    <span class="badge {% if stock_info.change_percent >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                        {% if stock_info.change_percent >= 0 %}+{% endif %}{{ stock_info.change_percent }}%
+                                    </span>
+                                {% elif stock_info.get('day_change_percent') is not none %}
+                                    <span class="badge {% if stock_info.day_change_percent >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                        {% if stock_info.day_change_percent >= 0 %}+{% endif %}{{ stock_info.day_change_percent }}%
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex flex-wrap">
+                                <div class="me-2 mb-1">
+                                    <div class="text-muted small">Market Cap</div>
+                                    <div>${{ stock_info.market_cap if stock_info.get('market_cap') else 'N/A' }}</div>
+                                </div>
+                                <div class="me-4 mb-3">
+                                    <div class="text-muted small">P/E Ratio</div>
+                                    <div>{{ stock_info.pe_ratio if stock_info.get('pe_ratio') else 'N/A' }}</div>
+                                </div>
+                                <div class="me-4 mb-3">
+                                    <div class="text-muted small">52-Week Range</div>
+                                    <div>
+                                        {% if stock_info.get('fifty_two_week_low') and stock_info.get('fifty_two_week_high') %}
+                                            ${{ stock_info.fifty_two_week_low }} - ${{ stock_info.fifty_two_week_high }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 mb-3 mb-lg-0">
+                            <a href="/stock-analysis/{{ symbol }}" class="btn btn-sm btn-outline-primary me-2 mb-2">
+                                <i class="fas fa-chart-bar me-1"></i> Technical Analysis
+                            </a>
+                            <a href="https://finance.yahoo.com/quote/{{ symbol }}" target="_blank" class="btn btn-sm btn-outline-secondary mb-2">
+                                <i class="fas fa-external-link-alt me-1"></i> Yahoo Finance
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 stock-header-details">
+                        <div class="recommendation-card p-2 rounded">
+                            <h5 class="fw-bold mb-2">Investment Recommendation</h5>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="recommendation-label">Rating:</div>
+                                <div class="recommendation-badge 
+                                    {% if thesis.recommendation and thesis.recommendation.rating == 'Buy' %}bg-success{% elif thesis.recommendation and thesis.recommendation.rating == 'Sell' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ thesis.recommendation.rating if thesis.recommendation and thesis.recommendation.rating else 'Hold' }}
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="recommendation-label">Target Price:</div>
+                                <div class="recommendation-value">${{ thesis.recommendation.target_price if thesis.recommendation and thesis.recommendation.target_price else stock_info.price }}</div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="recommendation-label">Time Horizon:</div>
+                                <div class="recommendation-value">{{ thesis.recommendation.time_horizon if thesis.recommendation and thesis.recommendation.time_horizon else 'Medium-term' }}</div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="recommendation-label">Confidence:</div>
+                                <div class="recommendation-value">{{ thesis.recommendation.confidence if thesis.recommendation and thesis.recommendation.confidence else 'Medium' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Executive Summary -->
+        <div class="card border-0 shadow-sm mb-1">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">Executive Summary</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ thesis.summary if thesis.summary else 'This investment thesis provides a comprehensive analysis of ' ~ stock_info.name ~ ' (' ~ symbol ~ '), examining its business model, financial health, growth prospects, and market position. The analysis considers both quantitative metrics and qualitative factors to arrive at an investment recommendation.' }}</p>
+            </div>
+        </div>
+        
+        <!-- Main Thesis Content -->
+        <div class="row g-1">
+            <!-- Left Column -->
+            <div class="col-lg-8 mb-0">
+                <!-- Business Overview -->
+                <div class="card border-0 shadow-sm mb-1">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Business Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ thesis.business_overview }}</p>
+                    </div>
+                </div>
+                
+                <!-- Industry Analysis -->
+                <div class="card border-0 shadow-sm mb-1">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Industry Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ thesis.industry_analysis }}</p>
+                    </div>
+                </div>
+                
+                <!-- Financial Analysis -->
+                <div class="card border-0 shadow-sm mb-1">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Financial Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ thesis.financial_analysis }}</p>
+                        
+                        <div class="financial-metrics mt-2">
+                            <h6 class="fw-bold mb-2">Key Financial Metrics</h6>
+                            <div class="row financial-metrics-row">
+                                <div class="col-md-3 col-6 mb-1">
+                                    <div class="financial-metric-card rounded">
+                                        <div class="metric-label">Revenue</div>
+                                        <div class="metric-value">${{ thesis.financials.revenue if thesis.financials and thesis.financials.revenue else 'N/A' }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-1">
+                                    <div class="financial-metric-card rounded">
+                                        <div class="metric-label">Net Income</div>
+                                        <div class="metric-value">${{ thesis.financials.net_income if thesis.financials and thesis.financials.net_income else 'N/A' }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-1">
+                                    <div class="financial-metric-card rounded">
+                                        <div class="metric-label">Profit Margin</div>
+                                        <div class="metric-value">{{ thesis.financials.profit_margin if thesis.financials and thesis.financials.profit_margin else 'N/A' }}{% if thesis.financials and thesis.financials.profit_margin %}%{% endif %}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-1">
+                                    <div class="financial-metric-card rounded">
+                                        <div class="metric-label">Debt-to-Equity</div>
+                                        <div class="metric-value">{{ thesis.financials.debt_to_equity if thesis.financials and thesis.financials.debt_to_equity else 'N/A' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Competitive Positioning -->
+                <div class="card border-0 shadow-sm mb-1">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Competitive Positioning</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ thesis.competitive_positioning }}</p>
+                    </div>
+                </div>
+                
+                <!-- Valuation Analysis -->
+                <div class="card border-0 shadow-sm mb-1">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Valuation Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ thesis.valuation_analysis }}</p>
+                    </div>
+                </div>
+                
+                <!-- Conclusion -->
+                <div class="card border-0 shadow-sm mb-1">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Conclusion</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ thesis.conclusion }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="col-lg-4 mb-0">
+                <!-- Growth Catalysts -->
+                <div class="card border-0 shadow-sm mb-1">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Growth Catalysts</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="growth-catalysts-list">
+                            {% for catalyst in thesis.growth_catalysts %}
+                                <li>
+                                    <div class="catalyst-icon">
+                                        <i class="fas fa-rocket"></i>
+                                    </div>
+                                    <div class="catalyst-text">{{ catalyst }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Risk Factors -->
+                <div class="card border-0 shadow-sm mb-1">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Risk Factors</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="risk-factors-list">
+                            {% for risk in thesis.risk_factors %}
+                                <li>
+                                    <div class="risk-icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="risk-text">{{ risk }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Market Sentiment -->
+                <div class="card border-0 shadow-sm mb-1">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Market Sentiment</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="sentiment-section mb-1">
+                            <h6 class="fw-bold mb-2">Growth Catalysts</h6>
+                            <div class="sentiment-meter">
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 30%"></div>
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 40%"></div>
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 30%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small>Negative</small>
+                                    <small>Neutral</small>
+                                    <small>Positive</small>
+                                </div>
+                            </div>
+                            <div class="sentiment-summary mt-2">
+                                <span class="badge 
+                                    {% if sentiment.news_sentiment == 'positive' %}bg-success{% elif sentiment.news_sentiment == 'negative' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ sentiment.news_sentiment|capitalize }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="sentiment-section mb-1">
+                            <h6 class="fw-bold mb-3">Social Media Sentiment</h6>
+                            <div class="sentiment-meter">
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 30%"></div>
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 40%"></div>
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 30%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small>Negative</small>
+                                    <small>Neutral</small>
+                                    <small>Positive</small>
+                                </div>
+                            </div>
+                            <div class="sentiment-summary mt-2">
+                                <span class="badge 
+                                    {% if sentiment.social_sentiment == 'positive' %}bg-success{% elif sentiment.social_sentiment == 'negative' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ sentiment.social_sentiment|capitalize }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="sentiment-section">
+                            <h6 class="fw-bold mb-2">Analyst Recommendations</h6>
+                            <div class="analyst-recommendations">
+                                {% if sentiment and sentiment.get('sentiment_breakdown') %}
+                                    {% set positive = sentiment.sentiment_breakdown.positive_percent|default(0) %}
+                                    {% set negative = sentiment.sentiment_breakdown.negative_percent|default(0) %}
+                                    {% set neutral = sentiment.sentiment_breakdown.neutral_percent|default(0) %}
+                                    
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>Buy:</div>
+                                        <div class="fw-bold">{{ positive|round }}%</div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>Hold:</div>
+                                        <div class="fw-bold">{{ neutral|round }}%</div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>Sell:</div>
+                                        <div class="fw-bold">{{ negative|round }}%</div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div>Consensus:</div>
+                                        <div class="fw-bold">
+                                            {% if positive > negative and positive > neutral %}
+                                                Buy
+                                            {% elif negative > positive and negative > neutral %}
+                                                Sell
+                                            {% else %}
+                                                Hold
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>Buy:</div>
+                                        <div class="fw-bold">60%</div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>Hold:</div>
+                                        <div class="fw-bold">30%</div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>Sell:</div>
+                                        <div class="fw-bold">10%</div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div>Consensus:</div>
+                                        <div class="fw-bold">Buy</div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sample Social Posts -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Social Media Buzz</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for post in sentiment.sample_posts %}
+                                <div class="list-group-item">
+                                    <div class="d-flex">
+                                        <div class="social-platform-icon me-3">
+                                            {% if post.platform|lower == 'twitter' %}
+                                                <i class="fab fa-twitter text-info"></i>
+                                            {% elif post.platform|lower == 'reddit' %}
+                                                <i class="fab fa-reddit-alien text-danger"></i>
+                                            {% elif post.platform|lower == 'stocktwits' %}
+                                                <i class="fas fa-comment-dollar text-success"></i>
+                                            {% else %}
+                                                <i class="fas fa-comment text-primary"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <p class="mb-1">{{ post.text }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">{{ post.platform }}</small>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-heart me-1"></i> {{ post.likes }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Global spacing fixes */
+    body {
+        line-height: 1.3;
+    }
+    
+    p {
+        margin-bottom: 0.25rem;
+    }
+    
+    .row {
+        --bs-gutter-x: 0.5rem;
+        --bs-gutter-y: 0.5rem;
+    }
+    
+    .card {
+        margin-bottom: 0.5rem !important;
+    }
+    .thesis-container {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 56px - 174px); /* Subtract navbar and footer height */
+        overflow-x: hidden;
+    }
+    
+    /* Fix large vertical gaps */
+    .thesis-container .card {
+        margin-bottom: 5px;
+    }
+    
+    /* Compact spacing */
+    .thesis-container .container-fluid {
+        max-width: 1400px;
+    }
+    
+    .stock-logo {
+        width: 50px;
+        height: 50px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4e73df;
+    }
+    
+    .recommendation-card {
+        background-color: #f8f9ff;
+        border-left: 2px solid #4e73df;
+        height: 100%;
+        padding: 0.35rem;
+    }
+    
+    .recommendation-label {
+        font-weight: 500;
+    }
+    
+    .recommendation-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        color: white;
+        display: inline-block;
+        font-size: 0.875rem;
+    }
+    
+    .recommendation-value {
+        font-weight: 600;
+    }
+    
+    .financial-metric-card {
+        background-color: #f8f9fa;
+        height: 100%;
+        padding: 0.35rem;
+        border-radius: 0.25rem;
+    }
+    
+    .metric-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-bottom: 0.15rem;
+    }
+    
+    .metric-value {
+        font-weight: bold;
+        font-size: 0.85rem;
+    }
+    
+    .growth-catalysts-list, .risk-factors-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .growth-catalysts-list li, .risk-factors-list li {
+        display: flex;
+        margin-bottom: 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .growth-catalysts-list li:last-child, .risk-factors-list li:last-child {
+        margin-bottom: 0;
+    }
+    
+    .catalyst-icon, .risk-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
+    
+    .catalyst-icon {
+        background-color: rgba(28, 200, 138, 0.1);
+        color: #1cc88a;
+    }
+    
+    .risk-icon {
+        background-color: rgba(231, 74, 59, 0.1);
+        color: #e74a3b;
+    }
+    
+    .catalyst-text, .risk-text {
+        flex-grow: 1;
+    }
+    
+    .social-platform-icon {
+        font-size: 1.5rem;
+        width: 30px;
+        text-align: center;
+    }
+    
+    /* Responsive fixes */
+    @media (max-width: 991.98px) {
+        .stock-header-details {
+            margin-top: 1rem;
+        }
+        
+        .recommendation-card {
+            margin-top: 1.5rem;
+        }
+        
+        .financial-metrics-row {
+            margin-top: 0;
+        }
+        
+        .financial-metric-card {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    /* Fix for long gaps */
+    .card-body {
+        padding: 0.5rem;
+    }
+    
+    .card-header {
+        padding: 0.35rem 0.5rem;
+        border-bottom: none;
+    }
+    
+    .sentiment-section {
+        margin-bottom: 0.25rem;
+    }
+    
+    .sentiment-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Compact layout fixes */
+    h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0 !important;
+    }
+    
+    h4 {
+        font-size: 1.1rem;
+    }
+    
+    h5 {
+        font-size: 0.95rem;
+        margin-bottom: 0 !important;
+    }
+    
+    h6 {
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    p {
+        margin-bottom: 0.25rem;
+        font-size: 0.85rem;
+    }
+    
+    p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .thesis-container .row > [class*="col-"] {
+        padding-top: 0;
+        padding-bottom: 0;
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+    
+    .thesis-container .card-body p {
+        line-height: 1.3;
+    }
+    
+    .mb-3 {
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .mb-4 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .small, small {
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animations for the growth catalysts and risk factors
+        const animateItems = (selector, delay = 100) => {
+            const items = document.querySelectorAll(selector);
+            items.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, index * delay);
+            });
+        };
+        
+        // Create an intersection observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.classList.contains('growth-catalysts-list')) {
+                        animateItems('.growth-catalysts-list li');
+                    } else if (entry.target.classList.contains('risk-factors-list')) {
+                        animateItems('.risk-factors-list li');
+                    }
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        // Observe the lists
+        const growthList = document.querySelector('.growth-catalysts-list');
+        const riskList = document.querySelector('.risk-factors-list');
+        
+        if (growthList) observer.observe(growthList);
+        if (riskList) observer.observe(riskList);
+    });
+</script>
+{% endblock %}

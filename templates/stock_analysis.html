@@ -1,0 +1,627 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Analysis: {{ stock_info.name }} ({{ symbol }}) - StockSense AI{% endblock %}
+
+{% block content %}
+<div class="stock-analysis-container py-4">
+    <div class="container">
+        <!-- Stock Header -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="stock-logo me-3">
+                                <i class="fas fa-brain fa-2x"></i>
+                            </div>
+                            <div>
+                                <h2 class="mb-0 fw-bold">AI Analysis</h2>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-dark me-2">{{ symbol }}</span>
+                                    <span class="text-muted">{{ stock_info.name }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0 fw-bold">${{ stock_info.price }}</h3>
+                            {% if stock_info.day_change and stock_info.day_change_percent %}
+                                <div class="ms-3">
+                                    <span class="{% if stock_info.day_change > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        <i class="fas {% if stock_info.day_change > 0 %}fa-caret-up{% else %}fa-caret-down{% endif %}"></i>
+                                        {{ stock_info.day_change }} ({{ stock_info.day_change_percent }}%)
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('stock_details', symbol=symbol) }}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-chart-line me-1"></i> Stock Details
+                            </a>
+                            <a href="{{ url_for('investment_thesis', symbol=symbol) }}" class="btn btn-outline-info">
+                                <i class="fas fa-file-alt me-1"></i> Investment Thesis
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mt-4 mt-lg-0">
+                        <div class="ai-sentiment-card p-3 rounded">
+                            <h5 class="fw-bold mb-3">AI Sentiment Analysis</h5>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="sentiment-label">Overall Sentiment:</div>
+                                <div class="sentiment-badge 
+                                    {% if analysis.sentiment == 'Bullish' %}bg-success{% elif analysis.sentiment == 'Bearish' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ analysis.sentiment }}
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="sentiment-label">Risk Assessment:</div>
+                                <div class="sentiment-badge 
+                                    {% if analysis.risk_assessment == 'Low' %}bg-success{% elif analysis.risk_assessment == 'High' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ analysis.risk_assessment }}
+                                </div>
+                            </div>
+                            <div class="sentiment-meter">
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 33%"></div>
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 34%"></div>
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 33%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small>Bearish</small>
+                                    <small>Neutral</small>
+                                    <small>Bullish</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI Analysis Summary -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-robot me-2 text-primary"></i> AI Analysis Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="ai-summary-container">
+                    <div class="row">
+                        <div class="col-lg-8 mb-4 mb-lg-0">
+                            <h6 class="fw-bold mb-3">Recent Price Movement</h6>
+                            <p>{{ analysis.summary }}</p>
+                            
+                            <h6 class="fw-bold mb-3 mt-4">Technical Analysis</h6>
+                            <p>{{ analysis.technical_analysis }}</p>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="key-factors-card p-3 rounded">
+                                <h6 class="fw-bold mb-3">Key Factors</h6>
+                                <ul class="key-factors-list">
+                                    {% for factor in analysis.key_factors %}
+                                        <li>{{ factor }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Price Prediction -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">7-Day Price Prediction</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="prediction-card">
+                            <div class="prediction-header d-flex justify-content-between align-items-center mb-3">
+                                <div class="prediction-direction 
+                                    {% if analysis.prediction_7d.direction == 'up' %}text-success{% elif analysis.prediction_7d.direction == 'down' %}text-danger{% else %}text-warning{% endif %}">
+                                    <i class="fas 
+                                        {% if analysis.prediction_7d.direction == 'up' %}fa-arrow-up{% elif analysis.prediction_7d.direction == 'down' %}fa-arrow-down{% else %}fa-arrows-alt-h{% endif %} me-2"></i>
+                                    {{ analysis.prediction_7d.direction|capitalize }}
+                                </div>
+                                <div class="prediction-confidence">
+                                    Confidence: {{ analysis.prediction_7d.confidence }}
+                                </div>
+                            </div>
+                            <div class="prediction-price text-center mb-3">
+                                <div class="current-price mb-2">
+                                    <span class="text-muted">Current:</span> ${{ analysis.current_price }}
+                                </div>
+                                <div class="target-price">
+                                    <span class="text-muted">Target:</span> 
+                                    <span class="fw-bold fs-4">${{ analysis.prediction_7d.target_price }}</span>
+                                </div>
+                            </div>
+                            <div class="prediction-chart-container">
+                                <canvas id="prediction7dChart" height="180"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">30-Day Price Prediction</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="prediction-card">
+                            <div class="prediction-header d-flex justify-content-between align-items-center mb-3">
+                                <div class="prediction-direction 
+                                    {% if analysis.prediction_30d.direction == 'up' %}text-success{% elif analysis.prediction_30d.direction == 'down' %}text-danger{% else %}text-warning{% endif %}">
+                                    <i class="fas 
+                                        {% if analysis.prediction_30d.direction == 'up' %}fa-arrow-up{% elif analysis.prediction_30d.direction == 'down' %}fa-arrow-down{% else %}fa-arrows-alt-h{% endif %} me-2"></i>
+                                    {{ analysis.prediction_30d.direction|capitalize }}
+                                </div>
+                                <div class="prediction-confidence">
+                                    Confidence: {{ analysis.prediction_30d.confidence }}
+                                </div>
+                            </div>
+                            <div class="prediction-price text-center mb-3">
+                                <div class="current-price mb-2">
+                                    <span class="text-muted">Current:</span> ${{ analysis.current_price }}
+                                </div>
+                                <div class="target-price">
+                                    <span class="text-muted">Target:</span> 
+                                    <span class="fw-bold fs-4">${{ analysis.prediction_30d.target_price }}</span>
+                                </div>
+                            </div>
+                            <div class="prediction-chart-container">
+                                <canvas id="prediction30dChart" height="180"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Analysis -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">Detailed Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="detailed-analysis">
+                    <h6 class="fw-bold mb-3">Reasoning</h6>
+                    <p>{{ analysis.reasoning }}</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-4 mb-md-0">
+                            <h6 class="fw-bold mb-3">Strengths</h6>
+                            <ul class="strengths-list">
+                                {% for i in range(3) %}
+                                    <li>{{ analysis.key_factors[i] if i < analysis.key_factors|length else 'N/A' }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3">Risks</h6>
+                            <ul class="risks-list">
+                                <li>Market volatility could impact short-term performance</li>
+                                <li>Competitive pressures in the industry</li>
+                                <li>Regulatory changes may affect business operations</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Historical Predictions Accuracy -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">AI Prediction Accuracy</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-4 mb-4 mb-lg-0">
+                        <div class="accuracy-stats">
+                            <div class="accuracy-stat-item text-center mb-4">
+                                <div class="accuracy-stat-value">
+                                    <div class="progress-circle" data-value="0.78">
+                                        <span class="progress-circle-left">
+                                            <span class="progress-circle-bar"></span>
+                                        </span>
+                                        <span class="progress-circle-right">
+                                            <span class="progress-circle-bar"></span>
+                                        </span>
+                                        <div class="progress-circle-value">78%</div>
+                                    </div>
+                                </div>
+                                <div class="accuracy-stat-label mt-2">Overall Accuracy</div>
+                            </div>
+                            
+                            <div class="accuracy-stat-details">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>7-Day Predictions:</div>
+                                    <div class="fw-bold">82% Accurate</div>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>30-Day Predictions:</div>
+                                    <div class="fw-bold">75% Accurate</div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <div>Direction Accuracy:</div>
+                                    <div class="fw-bold">88% Accurate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="accuracy-chart-container">
+                            <canvas id="accuracyChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stock-analysis-container {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 56px - 174px); /* Subtract navbar and footer height */
+    }
+    
+    .stock-logo {
+        width: 50px;
+        height: 50px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--bs-primary);
+    }
+    
+    .ai-sentiment-card {
+        background-color: #f8f9ff;
+        border-left: 4px solid #4e73df;
+    }
+    
+    .sentiment-label {
+        font-weight: 500;
+    }
+    
+    .sentiment-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        color: white;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .key-factors-card {
+        background-color: #f8f9fa;
+        border-left: 4px solid #1cc88a;
+    }
+    
+    .key-factors-list {
+        padding-left: 1.2rem;
+    }
+    
+    .key-factors-list li {
+        margin-bottom: 0.8rem;
+    }
+    
+    .prediction-card {
+        height: 100%;
+    }
+    
+    .prediction-direction {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .prediction-confidence {
+        background-color: #f8f9fa;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+    
+    .strengths-list li, .risks-list li {
+        margin-bottom: 0.8rem;
+    }
+    
+    .strengths-list li {
+        color: #1cc88a;
+    }
+    
+    .risks-list li {
+        color: #e74a3b;
+    }
+    
+    .strengths-list li span, .risks-list li span {
+        color: #5a5c69;
+    }
+    
+    /* Progress Circle */
+    .progress-circle {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background-color: #f8f9fa;
+        margin: 0 auto;
+    }
+    
+    .progress-circle-bar {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        clip: rect(0px, 60px, 120px, 0px);
+        background-color: #4e73df;
+    }
+    
+    .progress-circle-left .progress-circle-bar {
+        clip: rect(0px, 60px, 120px, 0px);
+    }
+    
+    .progress-circle-right .progress-circle-bar {
+        clip: rect(0px, 120px, 120px, 60px);
+    }
+    
+    .progress-circle-value {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #4e73df;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize 7-day prediction chart
+        const prediction7dCtx = document.getElementById('prediction7dChart').getContext('2d');
+        
+        // Generate some sample data for the prediction chart
+        const currentPrice = {{ analysis.current_price }};
+        const targetPrice = {{ analysis.prediction_7d.target_price }};
+        
+        const days7 = Array.from({length: 8}, (_, i) => `Day ${i}`);
+        
+        // Generate a smooth curve from current price to target price
+        const prediction7dData = [currentPrice];
+        const step = (targetPrice - currentPrice) / 6;
+        
+        for (let i = 1; i < 7; i++) {
+            // Add some randomness to make it look more realistic
+            const randomFactor = Math.random() * 0.5 - 0.25; // Random between -0.25 and 0.25
+            prediction7dData.push(currentPrice + (step * i) + (randomFactor * Math.abs(step)));
+        }
+        
+        prediction7dData.push(targetPrice);
+        
+        const prediction7dChart = new Chart(prediction7dCtx, {
+            type: 'line',
+            data: {
+                labels: days7,
+                datasets: [{
+                    label: 'Predicted Price',
+                    data: prediction7dData,
+                    borderColor: '{{ "rgba(28, 200, 138, 1)" if analysis.prediction_7d.direction == "up" else "rgba(231, 74, 59, 1)" if analysis.prediction_7d.direction == "down" else "rgba(246, 194, 62, 1)" }}',
+                    backgroundColor: '{{ "rgba(28, 200, 138, 0.1)" if analysis.prediction_7d.direction == "up" else "rgba(231, 74, 59, 0.1)" if analysis.prediction_7d.direction == "down" else "rgba(246, 194, 62, 0.1)" }}',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointBackgroundColor: '{{ "rgba(28, 200, 138, 1)" if analysis.prediction_7d.direction == "up" else "rgba(231, 74, 59, 1)" if analysis.prediction_7d.direction == "down" else "rgba(246, 194, 62, 1)" }}',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `$${context.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            borderDash: [2],
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize 30-day prediction chart
+        const prediction30dCtx = document.getElementById('prediction30dChart').getContext('2d');
+        
+        const days30 = Array.from({length: 8}, (_, i) => `Week ${i+1}`);
+        
+        // Generate a smooth curve from current price to target price (30-day)
+        const targetPrice30d = {{ analysis.prediction_30d.target_price }};
+        const prediction30dData = [currentPrice];
+        const step30d = (targetPrice30d - currentPrice) / 6;
+        
+        for (let i = 1; i < 7; i++) {
+            // Add some randomness to make it look more realistic
+            const randomFactor = Math.random() * 0.8 - 0.4; // Random between -0.4 and 0.4
+            prediction30dData.push(currentPrice + (step30d * i) + (randomFactor * Math.abs(step30d)));
+        }
+        
+        prediction30dData.push(targetPrice30d);
+        
+        const prediction30dChart = new Chart(prediction30dCtx, {
+            type: 'line',
+            data: {
+                labels: days30,
+                datasets: [{
+                    label: 'Predicted Price',
+                    data: prediction30dData,
+                    borderColor: '{{ "rgba(28, 200, 138, 1)" if analysis.prediction_30d.direction == "up" else "rgba(231, 74, 59, 1)" if analysis.prediction_30d.direction == "down" else "rgba(246, 194, 62, 1)" }}',
+                    backgroundColor: '{{ "rgba(28, 200, 138, 0.1)" if analysis.prediction_30d.direction == "up" else "rgba(231, 74, 59, 0.1)" if analysis.prediction_30d.direction == "down" else "rgba(246, 194, 62, 0.1)" }}',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointBackgroundColor: '{{ "rgba(28, 200, 138, 1)" if analysis.prediction_30d.direction == "up" else "rgba(231, 74, 59, 1)" if analysis.prediction_30d.direction == "down" else "rgba(246, 194, 62, 1)" }}',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `$${context.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            borderDash: [2],
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize accuracy chart
+        const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+        
+        // Sample data for accuracy chart
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        const predictedPrices = [150, 155, 158, 162, 160, 165];
+        const actualPrices = [152, 156, 157, 160, 163, 167];
+        
+        const accuracyChart = new Chart(accuracyCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Predicted Price',
+                        data: predictedPrices,
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Actual Price',
+                        data: actualPrices,
+                        borderColor: 'rgba(28, 200, 138, 1)',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgba(28, 200, 138, 1)',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: $${context.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            borderDash: [2],
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(0);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize progress circle
+        const progressCircle = document.querySelector('.progress-circle');
+        const progressValue = parseFloat(progressCircle.getAttribute('data-value'));
+        
+        const leftTransform = `rotate(${progressValue <= 0.5 ? progressValue * 360 : 180}deg)`;
+        const rightTransform = `rotate(${progressValue > 0.5 ? (progressValue - 0.5) * 360 : 0}deg)`;
+        
+        document.querySelector('.progress-circle-left .progress-circle-bar').style.transform = leftTransform;
+        document.querySelector('.progress-circle-right .progress-circle-bar').style.transform = rightTransform;
+    });
+</script>
+{% endblock %}

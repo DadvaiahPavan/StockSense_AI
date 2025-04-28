@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Chatbot - StockSense AI{% endblock %}
+
+{% block content %}
+<div class="chatbot-container py-4">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="fw-bold mb-0">AI Chatbot</h2>
+                <p class="text-muted">Ask questions about stocks, markets, and investment strategies</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white d-flex align-items-center">
+                        <div class="chatbot-avatar me-3">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">StockSense AI Assistant</h5>
+                            <div class="text-success small">
+                                <i class="fas fa-circle me-1"></i> Online
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message bot-message">
+                                <div class="message-content">
+                                    <p>Hello! I'm your StockSense AI assistant. I can help you with:</p>
+                                    <ul>
+                                        <li>Stock market information and analysis</li>
+                                        <li>Investment strategies and concepts</li>
+                                        <li>Financial metrics and terminology</li>
+                                        <li>Market news and trends</li>
+                                    </ul>
+                                    <p>What would you like to know about today?</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input">
+                            <form id="chatForm">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="messageInput" placeholder="Type your message here..." autocomplete="off">
+                                    <button class="btn btn-primary" type="submit" id="sendButton">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="suggested-questions mt-4">
+                    <h6 class="fw-bold mb-3">Suggested Questions</h6>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-primary w-100 text-start suggested-question">
+                                <i class="fas fa-question-circle me-2"></i> What is the P/E ratio?
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-primary w-100 text-start suggested-question">
+                                <i class="fas fa-question-circle me-2"></i> How do I evaluate a stock?
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-primary w-100 text-start suggested-question">
+                                <i class="fas fa-question-circle me-2"></i> Explain the SMA crossover strategy
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-primary w-100 text-start suggested-question">
+                                <i class="fas fa-question-circle me-2"></i> What factors affect stock prices?
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chatbot-container {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 56px - 174px); /* Subtract navbar and footer height */
+    }
+    
+    .chatbot-avatar {
+        width: 40px;
+        height: 40px;
+        background-color: #4e73df;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .chat-messages {
+        height: 500px;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+    
+    .message {
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .user-message {
+        align-items: flex-end;
+    }
+    
+    .bot-message {
+        align-items: flex-start;
+    }
+    
+    .message-content {
+        max-width: 80%;
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+    
+    .user-message .message-content {
+        background-color: #4e73df;
+        color: white;
+        border-bottom-right-radius: 0.25rem;
+    }
+    
+    .bot-message .message-content {
+        background-color: #f8f9fa;
+        border: 1px solid #e3e6f0;
+        border-bottom-left-radius: 0.25rem;
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        color: #858796;
+    }
+    
+    .chat-input {
+        padding: 1rem;
+        border-top: 1px solid #e3e6f0;
+    }
+    
+    .chat-input .form-control {
+        border-radius: 2rem 0 0 2rem;
+        padding-left: 1.5rem;
+    }
+    
+    .chat-input .btn {
+        border-radius: 0 2rem 2rem 0;
+    }
+    
+    .suggested-question {
+        margin-bottom: 0.5rem;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    
+    /* Loading animation */
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        margin: 0.5rem 0;
+    }
+    
+    .typing-indicator span {
+        height: 8px;
+        width: 8px;
+        background-color: #4e73df;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+        animation: typing 1s infinite ease-in-out;
+    }
+    
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+        margin-right: 0;
+    }
+    
+    @keyframes typing {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.5); }
+        100% { transform: scale(1); }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Add Marked.js for Markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const suggestedQuestions = document.querySelectorAll('.suggested-question');
+        
+        // Function to add a message to the chat
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            // Render Markdown as HTML for bot/AI responses
+            if (!isUser && window.marked) {
+                messageContent.innerHTML = marked.parse(content);
+            } else {
+                messageContent.textContent = content;
+            }
+            
+            const messageTime = document.createElement('div');
+            messageTime.className = 'message-time';
+            messageTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.appendChild(messageContent);
+            messageDiv.appendChild(messageTime);
+            
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Function to show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message';
+            typingDiv.id = 'typingIndicator';
+            
+            const typingContent = document.createElement('div');
+            typingContent.className = 'message-content typing-indicator';
+            typingContent.innerHTML = '<span></span><span></span><span></span>';
+            
+            typingDiv.appendChild(typingContent);
+            chatMessages.appendChild(typingDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Function to remove typing indicator
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+        
+        // Function to send a message to the AI
+        function sendMessage(message) {
+            // Add user message to chat
+            addMessage(message, true);
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Disable input while waiting for response
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            
+            // Send message to AI
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                // Add AI response to chat
+                addMessage(data.response);
+                
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                // Add error message
+                addMessage('Sorry, I encountered an error. Please try again.');
+                
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            });
+        }
+        
+        // Handle form submission
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const message = messageInput.value.trim();
+            
+            if (message) {
+                sendMessage(message);
+                messageInput.value = '';
+            }
+        });
+        
+        // Handle suggested questions
+        suggestedQuestions.forEach(button => {
+            button.addEventListener('click', function() {
+                const question = this.textContent.trim();
+                sendMessage(question);
+            });
+        });
+        
+        // Focus input on page load
+        messageInput.focus();
+    });
+</script>
+{% endblock %}

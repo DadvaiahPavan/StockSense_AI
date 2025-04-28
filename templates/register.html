@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - StockSense AI{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-wrapper">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <div class="auth-card">
+                        <div class="auth-header text-center mb-4">
+                            <a href="{{ url_for('index') }}" class="d-inline-block mb-3">
+                                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="StockSense AI Logo" height="60">
+                            </a>
+                            <h2 class="fw-bold">Create Account</h2>
+                            <p class="text-muted">Join StockSense AI for AI-powered stock analysis</p>
+                        </div>
+                        
+                        <form method="post" action="{{ url_for('register') }}" class="auth-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="username" name="username" required autofocus>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="password-strength mt-2" id="passwordStrength">
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <small class="text-muted" id="passwordFeedback">Password strength</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4 form-check">
+                                <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    I agree to the <a href="#" class="text-primary">Terms of Service</a> and <a href="#" class="text-primary">Privacy Policy</a>
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">Create Account</button>
+                            </div>
+                        </form>
+                        
+                        <div class="auth-footer text-center mt-4">
+                            <p>Already have an account? <a href="{{ url_for('login') }}" class="text-primary fw-bold">Login</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    
+    .auth-wrapper {
+        width: 100%;
+        padding: 2rem 0;
+    }
+    
+    .auth-card {
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem;
+        transition: transform 0.3s ease;
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    .auth-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .auth-form .input-group-text {
+        background-color: transparent;
+        border-right: none;
+    }
+    
+    .auth-form .form-control {
+        border-left: none;
+    }
+    
+    .auth-form .form-control:focus {
+        box-shadow: none;
+    }
+    
+    .auth-form .btn-primary {
+        padding: 0.8rem;
+        transition: all 0.3s ease;
+    }
+    
+    .auth-form .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle password visibility
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Toggle eye icon
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+        
+        // Password strength meter
+        const progressBar = document.querySelector('#passwordStrength .progress-bar');
+        const feedback = document.getElementById('passwordFeedback');
+        
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            let message = '';
+            
+            if (password.length >= 8) {
+                strength += 25;
+            }
+            
+            if (password.match(/[A-Z]/)) {
+                strength += 25;
+            }
+            
+            if (password.match(/[0-9]/)) {
+                strength += 25;
+            }
+            
+            if (password.match(/[^A-Za-z0-9]/)) {
+                strength += 25;
+            }
+            
+            progressBar.style.width = strength + '%';
+            
+            if (strength < 25) {
+                progressBar.className = 'progress-bar bg-danger';
+                message = 'Very weak';
+            } else if (strength < 50) {
+                progressBar.className = 'progress-bar bg-warning';
+                message = 'Weak';
+            } else if (strength < 75) {
+                progressBar.className = 'progress-bar bg-info';
+                message = 'Moderate';
+            } else {
+                progressBar.className = 'progress-bar bg-success';
+                message = 'Strong';
+            }
+            
+            feedback.textContent = message;
+        });
+    });
+</script>
+{% endblock %}

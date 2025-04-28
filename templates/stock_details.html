@@ -1,0 +1,614 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ stock_info.name }} ({{ symbol }}) - StockSense AI{% endblock %}
+
+{% block content %}
+<div class="stock-details-container py-4">
+    <div class="container">
+        <!-- Stock Header -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="stock-logo me-3">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                            <div>
+                                <h2 class="mb-0 fw-bold">{{ stock_info.name }}</h2>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-dark me-2">{{ symbol }}</span>
+                                    <span class="text-muted">{{ stock_info.exchange }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0 fw-bold">${{ stock_info.price }}</h3>
+                            {% if stock_info.day_change and stock_info.day_change_percent %}
+                                <div class="ms-3">
+                                    <span class="{% if stock_info.day_change > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        <i class="fas {% if stock_info.day_change > 0 %}fa-caret-up{% else %}fa-caret-down{% endif %}"></i>
+                                        {{ stock_info.day_change }} ({{ stock_info.day_change_percent }}%)
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary me-2 add-to-watchlist" data-symbol="{{ symbol }}" data-name="{{ stock_info.name }}">
+                                <i class="fas fa-plus me-1"></i> Add to Watchlist
+                            </button>
+                            <a href="{{ url_for('stock_analysis', symbol=symbol) }}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-brain me-1"></i> AI Analysis
+                            </a>
+                            <a href="{{ url_for('investment_thesis', symbol=symbol) }}" class="btn btn-outline-info">
+                                <i class="fas fa-file-alt me-1"></i> Investment Thesis
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mt-4 mt-lg-0">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <div class="stock-stat">
+                                    <div class="text-muted small">Market Cap</div>
+                                    <div class="fw-bold">{{ stock_info.market_cap }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stock-stat">
+                                    <div class="text-muted small">P/E Ratio</div>
+                                    <div class="fw-bold">{{ stock_info.pe_ratio }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stock-stat">
+                                    <div class="text-muted small">EPS</div>
+                                    <div class="fw-bold">{{ stock_info.eps }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stock-stat">
+                                    <div class="text-muted small">Dividend Yield</div>
+                                    <div class="fw-bold">{{ stock_info.dividend_yield }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stock-stat">
+                                    <div class="text-muted small">52W High</div>
+                                    <div class="fw-bold">${{ stock_info.fifty_two_week_high }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stock-stat">
+                                    <div class="text-muted small">52W Low</div>
+                                    <div class="fw-bold">${{ stock_info.fifty_two_week_low }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stock-stat">
+                                    <div class="text-muted small">Volume</div>
+                                    <div class="fw-bold">{{ stock_info.volume }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stock-stat">
+                                    <div class="text-muted small">Avg Volume</div>
+                                    <div class="fw-bold">{{ stock_info.avg_volume }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chart Section -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Price Chart</h5>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-primary active time-range-btn" data-range="1d">1D</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary time-range-btn" data-range="5d">5D</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary time-range-btn" data-range="1mo">1M</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary time-range-btn" data-range="3mo">3M</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary time-range-btn" data-range="6mo">6M</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary time-range-btn" data-range="1y">1Y</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary time-range-btn" data-range="5y">5Y</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="priceChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Technical Indicators -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Moving Averages</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="maChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Volume</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="volumeChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Company Info -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">Company Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <h6 class="fw-bold">About {{ stock_info.name }}</h6>
+                        <p>{{ stock_info.description }}</p>
+                        
+                        <h6 class="fw-bold mt-4">Sector & Industry</h6>
+                        <div class="d-flex mb-2">
+                            <div class="text-muted" style="width: 100px;">Sector:</div>
+                            <div>{{ stock_info.sector }}</div>
+                        </div>
+                        <div class="d-flex">
+                            <div class="text-muted" style="width: 100px;">Industry:</div>
+                            <div>{{ stock_info.industry }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Key Financials</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted">Market Cap</td>
+                                        <td class="fw-bold text-end">{{ stock_info.market_cap }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">P/E Ratio</td>
+                                        <td class="fw-bold text-end">{{ stock_info.pe_ratio }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">EPS (TTM)</td>
+                                        <td class="fw-bold text-end">{{ stock_info.eps }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Price to Book</td>
+                                        <td class="fw-bold text-end">{{ stock_info.price_to_book }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Dividend Yield</td>
+                                        <td class="fw-bold text-end">{{ stock_info.dividend_yield }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Beta</td>
+                                        <td class="fw-bold text-end">{{ stock_info.beta }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Related Stocks -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">Related Stocks</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3" id="relatedStocks">
+                    <div class="col-12 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stock-details-container {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 56px - 174px); /* Subtract navbar and footer height */
+    }
+    
+    .stock-logo {
+        width: 50px;
+        height: 50px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--bs-primary);
+    }
+    
+    .stock-stat {
+        padding: 10px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        height: 100%;
+    }
+    
+    .chart-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .time-range-btn {
+        transition: all 0.2s ease;
+    }
+    
+    .time-range-btn.active {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Parse the historical data from the server
+        const historicalData = JSON.parse('{{ historical_data|safe }}');
+        
+        // Initialize price chart
+        const priceCtx = document.getElementById('priceChart').getContext('2d');
+        
+        const priceChart = new Chart(priceCtx, {
+            type: 'line',
+            data: {
+                labels: historicalData.dates,
+                datasets: [{
+                    label: '{{ symbol }} Price',
+                    data: historicalData.prices,
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: '#4e73df',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `$${context.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            borderDash: [2],
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize moving averages chart
+        const maCtx = document.getElementById('maChart').getContext('2d');
+        
+        const maChart = new Chart(maCtx, {
+            type: 'line',
+            data: {
+                labels: historicalData.dates,
+                datasets: [
+                    {
+                        label: '{{ symbol }} Price',
+                        data: historicalData.prices,
+                        borderColor: '#4e73df',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'SMA 20',
+                        data: historicalData.sma_20,
+                        borderColor: '#36b9cc',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'SMA 50',
+                        data: historicalData.sma_50,
+                        borderColor: '#1cc88a',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'SMA 200',
+                        data: historicalData.sma_200,
+                        borderColor: '#f6c23e',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            borderDash: [2],
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize volume chart
+        const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+        
+        const volumeChart = new Chart(volumeCtx, {
+            type: 'bar',
+            data: {
+                labels: historicalData.dates,
+                datasets: [{
+                    label: 'Volume',
+                    data: historicalData.volumes,
+                    backgroundColor: 'rgba(78, 115, 223, 0.5)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.raw.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            borderDash: [2],
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                } else if (value >= 1000) {
+                                    return (value / 1000).toFixed(1) + 'K';
+                                }
+                                return value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Time range buttons
+        const timeRangeButtons = document.querySelectorAll('.time-range-btn');
+        timeRangeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                timeRangeButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                const range = this.dataset.range;
+                
+                // Fetch stock data for the selected range
+                fetch(`/api/stock/data?symbol={{ symbol }}&period=${range}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update price chart
+                        priceChart.data.labels = data.dates;
+                        priceChart.data.datasets[0].data = data.prices;
+                        priceChart.update();
+                        
+                        // Update MA chart
+                        maChart.data.labels = data.dates;
+                        maChart.data.datasets[0].data = data.prices;
+                        maChart.data.datasets[1].data = data.sma_20;
+                        maChart.data.datasets[2].data = data.sma_50;
+                        maChart.data.datasets[3].data = data.sma_200;
+                        maChart.update();
+                        
+                        // Update volume chart
+                        volumeChart.data.labels = data.dates;
+                        volumeChart.data.datasets[0].data = data.volumes;
+                        volumeChart.update();
+                    });
+            });
+        });
+        
+        // Add to watchlist functionality
+        const addToWatchlistBtn = document.querySelector('.add-to-watchlist');
+        addToWatchlistBtn.addEventListener('click', function() {
+            const symbol = this.dataset.symbol;
+            const name = this.dataset.name;
+            
+            // Add to watchlist via API
+            fetch('/api/watchlist/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    symbol: symbol,
+                    name: name
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update button
+                    this.innerHTML = '<i class="fas fa-check me-1"></i> Added to Watchlist';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-success');
+                    this.disabled = true;
+                }
+            });
+        });
+        
+        // Load related stocks
+        function loadRelatedStocks() {
+            // In a real app, this would fetch related stocks based on sector/industry
+            // For demo, we'll use some hardcoded stocks
+            const sector = '{{ stock_info.sector }}';
+            
+            let relatedStocks = [];
+            
+            if (sector.includes('Tech') || sector.includes('Technology')) {
+                relatedStocks = [
+                    { symbol: 'AAPL', name: 'Apple Inc.' },
+                    { symbol: 'MSFT', name: 'Microsoft Corporation' },
+                    { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+                    { symbol: 'AMZN', name: 'Amazon.com, Inc.' }
+                ];
+            } else if (sector.includes('Financial') || sector.includes('Finance')) {
+                relatedStocks = [
+                    { symbol: 'JPM', name: 'JPMorgan Chase & Co.' },
+                    { symbol: 'BAC', name: 'Bank of America Corporation' },
+                    { symbol: 'WFC', name: 'Wells Fargo & Company' },
+                    { symbol: 'C', name: 'Citigroup Inc.' }
+                ];
+            } else if (sector.includes('Health') || sector.includes('Healthcare')) {
+                relatedStocks = [
+                    { symbol: 'JNJ', name: 'Johnson & Johnson' },
+                    { symbol: 'PFE', name: 'Pfizer Inc.' },
+                    { symbol: 'UNH', name: 'UnitedHealth Group Incorporated' },
+                    { symbol: 'MRK', name: 'Merck & Co., Inc.' }
+                ];
+            } else {
+                // Default related stocks
+                relatedStocks = [
+                    { symbol: 'AAPL', name: 'Apple Inc.' },
+                    { symbol: 'MSFT', name: 'Microsoft Corporation' },
+                    { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+                    { symbol: 'AMZN', name: 'Amazon.com, Inc.' }
+                ];
+            }
+            
+            // Filter out the current stock
+            relatedStocks = relatedStocks.filter(stock => stock.symbol !== '{{ symbol }}');
+            
+            // Limit to 4 stocks
+            relatedStocks = relatedStocks.slice(0, 4);
+            
+            // Display related stocks
+            const relatedStocksContainer = document.getElementById('relatedStocks');
+            relatedStocksContainer.innerHTML = '';
+            
+            relatedStocks.forEach(stock => {
+                const col = document.createElement('div');
+                col.className = 'col-md-6 col-lg-3';
+                
+                col.innerHTML = `
+                    <div class="card border-0 shadow-sm h-100 related-stock-card">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-2">${stock.name}</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-dark">${stock.symbol}</span>
+                                <a href="/stock/${stock.symbol}" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                relatedStocksContainer.appendChild(col);
+            });
+        }
+        
+        // Load related stocks
+        loadRelatedStocks();
+    });
+</script>
+{% endblock %}

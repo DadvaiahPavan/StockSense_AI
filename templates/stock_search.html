@@ -1,0 +1,1337 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Search - StockSense AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-lg-12 text-center">
+            <h1 class="display-4 fw-bold text-primary mb-3">Intelligent Stock Search</h1>
+            <p class="lead text-muted mb-4">Discover real-time data, comprehensive analysis, and insights for stocks across US and Indian markets</p>
+            <div class="d-flex justify-content-center">
+                <div class="badge bg-light text-dark me-2 px-3 py-2"><i class="fas fa-bolt text-warning me-1"></i> Real-time Data</div>
+                <div class="badge bg-light text-dark me-2 px-3 py-2"><i class="fas fa-chart-line text-success me-1"></i> Interactive Charts</div>
+                <div class="badge bg-light text-dark px-3 py-2"><i class="fas fa-brain text-primary me-1"></i> AI Analysis</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Section -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10 mb-5" data-aos="fade-up" data-aos-delay="100">
+            <div class="modern-card shadow-lg border-0">
+                <div class="card-body p-4 p-md-5">
+                    <div class="search-container position-relative">
+                        <div class="input-group-modern mb-4">
+                            <span class="input-group-text bg-primary text-white">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" id="stockSearchInput" class="form-control-modern form-control-lg" 
+                                   placeholder="Enter stock symbol or company name (e.g., AAPL, TSLA, RELIANCE.NS)">
+                            <button class="btn btn-modern-primary btn-lg" type="button" id="stockSearchButton">
+                                <i class="fas fa-search me-1"></i> Search
+                            </button>
+                        </div>
+                        
+                        <div class="search-examples text-center mb-4">
+                            <span class="text-muted">Try popular stocks: </span>
+                            <a href="#" class="badge rounded-pill bg-light text-primary me-1 stock-example" data-symbol="AAPL">AAPL</a>
+                            <a href="#" class="badge rounded-pill bg-light text-primary me-1 stock-example" data-symbol="MSFT">MSFT</a>
+                            <a href="#" class="badge rounded-pill bg-light text-primary me-1 stock-example" data-symbol="GOOGL">GOOGL</a>
+                            <a href="#" class="badge rounded-pill bg-light text-primary me-1 stock-example" data-symbol="AMZN">AMZN</a>
+                            <a href="#" class="badge rounded-pill bg-light text-primary me-1 stock-example" data-symbol="TSLA">TSLA</a>
+                            <a href="#" class="badge rounded-pill bg-light text-primary me-1 stock-example" data-symbol="RELIANCE.NS">RELIANCE.NS</a>
+                            <a href="#" class="badge rounded-pill bg-light text-primary stock-example" data-symbol="TCS.NS">TCS.NS</a>
+                        </div>
+                        
+                        <div id="searchSuggestions" class="list-group rounded-md shadow-sm mb-4 position-absolute w-100 z-index-dropdown"></div>
+                    </div>
+                    
+                    <!-- Loading Animation -->
+                    <div id="loadingAnimation" class="text-center py-5 d-none">
+                        <div class="loader-modern">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
+                        <h4 class="mt-4 text-primary fw-bold">Fetching Stock Data</h4>
+                        <p class="text-muted">Retrieving real-time information from markets</p>
+                        <div class="progress mt-3" style="height: 6px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="stockResultsContainer" class="d-none">
+        <!-- Stock Overview Card -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-10" data-aos="fade-up">
+                <div class="modern-card border-0 shadow-lg overflow-hidden">
+                    <div class="card-header bg-gradient-primary text-white p-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="stock-logo me-3 rounded-circle bg-white p-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-chart-line fa-lg text-primary"></i>
+                                </div>
+                                <div>
+                                    <h2 class="mb-0 fw-bold" id="stockName"></h2>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-white text-primary me-2" id="stockSymbol"></span>
+                                        <span class="text-white-50" id="stockExchange"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <h2 class="mb-0 fw-bold" id="stockPrice"></h2>
+                                <div id="stockChange"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="row g-4 mb-4">
+                                    <div class="col-6 col-md-3">
+                                        <div class="stock-stat p-3 rounded-md bg-light-medium">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-chart-pie text-primary me-2"></i>
+                                                <div class="text-muted small">Market Cap</div>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="marketCap"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="stock-stat p-3 rounded-md bg-light-medium">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-calculator text-secondary me-2"></i>
+                                                <div class="text-muted small">P/E Ratio</div>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="peRatio"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="stock-stat p-3 rounded-md bg-light-medium">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-dollar-sign text-success me-2"></i>
+                                                <div class="text-muted small">EPS</div>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="eps"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="stock-stat p-3 rounded-md bg-light-medium">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-hand-holding-usd text-warning me-2"></i>
+                                                <div class="text-muted small">Dividend</div>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="dividendYield"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-4">
+                                    <div class="col-6 col-md-3">
+                                        <div class="stock-stat p-3 rounded-md bg-light-medium">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-arrow-up text-success me-2"></i>
+                                                <div class="text-muted small">52W High</div>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="high52Week"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="stock-stat p-3 rounded-md bg-light-medium">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-arrow-down text-danger me-2"></i>
+                                                <div class="text-muted small">52W Low</div>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="low52Week"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="stock-stat p-3 rounded-md bg-light-medium">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-exchange-alt text-info me-2"></i>
+                                                <div class="text-muted small">Volume</div>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="volume"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="stock-stat p-3 rounded-md bg-light-medium">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-chart-bar text-primary me-2"></i>
+                                                <div class="text-muted small">Avg Volume</div>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="avgVolume"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mt-4 mt-md-0 d-flex flex-column justify-content-center">
+                                <div class="d-grid gap-3">
+                                    <button class="btn btn-modern-primary btn-lg" id="addToWatchlistBtn">
+                                        <i class="fas fa-plus me-2"></i> Add to Watchlist
+                                    </button>
+                                    <a href="#" class="btn btn-modern-secondary btn-lg" id="analysisLink">
+                                        <i class="fas fa-brain me-2"></i> AI Analysis
+                                    </a>
+                                    <a href="#" class="btn btn-modern-accent btn-lg" id="thesisLink">
+                                        <i class="fas fa-file-alt me-2"></i> Investment Thesis
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stock Chart Card -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-10" data-aos="fade-up" data-aos-delay="100">
+                <div class="modern-card border-0 shadow-lg">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="mb-0 fw-bold text-primary"><i class="fas fa-chart-line me-2"></i>Price History</h3>
+                            
+                            <div class="chart-type-selector">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-modern-outline active" data-chart-type="line">
+                                        <i class="fas fa-chart-line me-1"></i> Line
+                                    </button>
+                                    <button type="button" class="btn btn-modern-outline" data-chart-type="candlestick">
+                                        <i class="fas fa-chart-bar me-1"></i> Candlestick
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-controls mb-4 d-flex justify-content-center">
+                            <div class="time-period-selector">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-modern-primary active" data-period="1d">1D</button>
+                                    <button type="button" class="btn btn-modern-primary" data-period="5d">5D</button>
+                                    <button type="button" class="btn btn-modern-primary" data-period="1mo">1M</button>
+                                    <button type="button" class="btn btn-modern-primary" data-period="3mo">3M</button>
+                                    <button type="button" class="btn btn-modern-primary" data-period="6mo">6M</button>
+                                    <button type="button" class="btn btn-modern-primary" data-period="1y">1Y</button>
+                                    <button type="button" class="btn btn-modern-primary" data-period="5y">5Y</button>
+                                    <button type="button" class="btn btn-modern-primary" data-period="max">Max</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container position-relative" style="height: 450px;">
+                            <canvas id="stockChart" class="rounded-lg"></canvas>
+                            
+                            <!-- Chart Loading -->
+                            <div id="chartLoading" class="chart-loading d-none">
+                                <div class="loader-modern loader-sm">
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                </div>
+                                <p class="mt-3 text-primary">Loading chart data...</p>
+                            </div>
+                            
+                            <!-- Chart Error -->
+                            <div id="chartError" class="chart-error d-none">
+                                <div class="error-icon mb-3 rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-exclamation-triangle text-warning fa-2x"></i>
+                                </div>
+                                <h5 class="fw-bold">Unable to load chart data</h5>
+                                <p class="text-muted mb-4">We couldn't retrieve the historical data for this stock.</p>
+                                <button class="btn btn-modern-primary" id="retryChartBtn">
+                                    <i class="fas fa-sync-alt me-2"></i> Retry
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-info mt-4 p-3 bg-light-medium rounded-md">
+                            <div class="row g-3">
+                                <div class="col-md-3 col-6">
+                                    <div class="chart-stat d-flex align-items-center">
+                                        <div class="stat-icon me-2 rounded-circle bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="fas fa-door-open text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-muted small">Open</div>
+                                            <div class="fw-bold" id="chartOpen"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="chart-stat d-flex align-items-center">
+                                        <div class="stat-icon me-2 rounded-circle bg-success bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="fas fa-arrow-up text-success"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-muted small">High</div>
+                                            <div class="fw-bold" id="chartHigh"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="chart-stat d-flex align-items-center">
+                                        <div class="stat-icon me-2 rounded-circle bg-danger bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="fas fa-arrow-down text-danger"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-muted small">Low</div>
+                                            <div class="fw-bold" id="chartLow"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="chart-stat d-flex align-items-center">
+                                        <div class="stat-icon me-2 rounded-circle bg-info bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="fas fa-door-closed text-info"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-muted small">Close</div>
+                                            <div class="fw-bold" id="chartClose"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Company Info -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-10" data-aos="fade-up" data-aos-delay="250">
+                <div class="modern-card border-0 shadow-lg">
+                    <div class="card-header bg-gradient-tertiary text-white p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="company-icon me-3 rounded-circle bg-white p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-building text-tertiary"></i>
+                            </div>
+                            <h3 class="mb-0 fw-bold">Company Information</h3>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            <div class="col-md-6" data-aos="fade-right" data-aos-delay="50">
+                                <div class="company-about p-4 rounded-md bg-light-medium h-100">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="info-icon me-2 rounded-circle bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="fas fa-info-circle text-primary"></i>
+                                        </div>
+                                        <h5 class="mb-0 fw-bold">About</h5>
+                                    </div>
+                                    <p id="companyDescription" class="mb-4"></p>
+                                    
+                                    <div class="sector-industry mt-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="info-icon me-2 rounded-circle bg-info bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                                <i class="fas fa-industry text-info"></i>
+                                            </div>
+                                            <h5 class="mb-0 fw-bold">Sector & Industry</h5>
+                                        </div>
+                                        
+                                        <div class="sector-badge p-3 mb-3 rounded-md bg-white bg-opacity-75 d-flex align-items-center">
+                                            <div class="badge-icon me-2 rounded-circle bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-chart-pie text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <div class="small text-muted">Sector</div>
+                                                <div class="fw-bold fs-5" id="sector"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="industry-badge p-3 rounded-md bg-white bg-opacity-75 d-flex align-items-center">
+                                            <div class="badge-icon me-2 rounded-circle bg-success bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-sitemap text-success"></i>
+                                            </div>
+                                            <div>
+                                                <div class="small text-muted">Industry</div>
+                                                <div class="fw-bold fs-5" id="industry"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6" data-aos="fade-left" data-aos-delay="100">
+                                <div class="financials p-4 rounded-md bg-light-medium h-100">
+                                    <div class="d-flex align-items-center mb-4">
+                                        <div class="info-icon me-2 rounded-circle bg-success bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="fas fa-dollar-sign text-success"></i>
+                                        </div>
+                                        <h5 class="mb-0 fw-bold">Key Financials</h5>
+                                    </div>
+                                    
+                                    <div class="financial-metrics">
+                                        <div class="financial-metric p-3 mb-3 rounded-md bg-white bg-opacity-75 d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="metric-icon me-2 rounded-circle bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-chart-pie text-primary"></i>
+                                                </div>
+                                                <div class="text-muted">Market Cap</div>
+                                            </div>
+                                            <div class="fw-bold" id="tableMarketCap"></div>
+                                        </div>
+                                        
+                                        <div class="financial-metric p-3 mb-3 rounded-md bg-white bg-opacity-75 d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="metric-icon me-2 rounded-circle bg-info bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-calculator text-info"></i>
+                                                </div>
+                                                <div class="text-muted">P/E Ratio</div>
+                                            </div>
+                                            <div class="fw-bold" id="tablePeRatio"></div>
+                                        </div>
+                                        
+                                        <div class="financial-metric p-3 mb-3 rounded-md bg-white bg-opacity-75 d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="metric-icon me-2 rounded-circle bg-success bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-coins text-success"></i>
+                                                </div>
+                                                <div class="text-muted">EPS (TTM)</div>
+                                            </div>
+                                            <div class="fw-bold" id="tableEps"></div>
+                                        </div>
+                                        
+                                        <div class="financial-metric p-3 mb-3 rounded-md bg-white bg-opacity-75 d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="metric-icon me-2 rounded-circle bg-warning bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-book text-warning"></i>
+                                                </div>
+                                                <div class="text-muted">Price to Book</div>
+                                            </div>
+                                            <div class="fw-bold" id="priceToBook"></div>
+                                        </div>
+                                        
+                                        <div class="financial-metric p-3 mb-3 rounded-md bg-white bg-opacity-75 d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="metric-icon me-2 rounded-circle bg-accent bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-hand-holding-usd text-accent"></i>
+                                                </div>
+                                                <div class="text-muted">Dividend Yield</div>
+                                            </div>
+                                            <div class="fw-bold" id="tableDividendYield"></div>
+                                        </div>
+                                        
+                                        <div class="financial-metric p-3 rounded-md bg-white bg-opacity-75 d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="metric-icon me-2 rounded-circle bg-tertiary bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-chart-line text-tertiary"></i>
+                                                </div>
+                                                <div class="text-muted">Beta</div>
+                                            </div>
+                                            <div class="fw-bold" id="beta"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Loading Animation */
+    .loader-modern {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin: 0 auto;
+        width: 80px;
+        height: 80px;
+    }
+    
+    .loader-modern.loader-sm {
+        width: 60px;
+        height: 60px;
+        gap: 6px;
+    }
+    
+    .loader-modern div {
+        width: 16px;
+        height: 16px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        animation: loader-modern 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+    
+    .loader-modern.loader-sm div {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .loader-modern div:nth-child(1) {
+        animation-delay: 0s;
+        background: var(--primary-color);
+    }
+    
+    .loader-modern div:nth-child(2) {
+        animation-delay: -0.3s;
+        background: var(--secondary-color);
+    }
+    
+    .loader-modern div:nth-child(3) {
+        animation-delay: -0.6s;
+        background: var(--accent-color);
+    }
+    
+    .loader-modern div:nth-child(4) {
+        animation-delay: -0.9s;
+        background: var(--tertiary-color);
+    }
+    
+    @keyframes loader-modern {
+        0% { transform: scale(0); }
+        50% { transform: scale(1); }
+        100% { transform: scale(0); }
+    }
+    
+    /* Chart Loading & Error Styles */
+    .chart-loading, .chart-error {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(4px);
+        border-radius: 12px;
+        z-index: 10;
+    }
+    
+    .dark-mode .chart-loading, .dark-mode .chart-error {
+        background-color: rgba(30, 30, 30, 0.9);
+    }
+    
+    /* Stock Stats Animations */
+    .stock-stat, .ma-card, .indicator-card, .financial-metric {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stock-stat:hover, .ma-card:hover, .indicator-card:hover, .financial-metric:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Glow effects */
+    .indicator-glow, .ma-glow {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+    }
+    
+    .indicator-card:hover .indicator-glow, .ma-card:hover .ma-glow {
+        opacity: 0.3;
+        animation: rotate 8s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Search Suggestions Styling */
+    .z-index-dropdown {
+        z-index: 1000;
+    }
+    
+    /* Search Examples Animation */
+    .stock-example {
+        transition: all 0.3s ease;
+    }
+    
+    .stock-example:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Fade-in animation for stock results */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Pulse animation for search button */
+    .btn-pulse {
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(var(--primary-rgb), 0); }
+        100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
+    }
+    
+    /* Shimmer loading effect */
+    .shimmer {
+        background: linear-gradient(90deg, 
+            rgba(255, 255, 255, 0.1) 0%, 
+            rgba(255, 255, 255, 0.2) 50%, 
+            rgba(255, 255, 255, 0.1) 100%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    
+    /* Progress bar animations */
+    .progress-bar-animated {
+        animation: progress-bar-stripes 1s linear infinite;
+    }
+    
+    @keyframes progress-bar-stripes {
+        0% { background-position-x: 1rem; }
+    }
+    
+    /* Floating animation for cards */
+    .float-animation {
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('stockSearchInput');
+        const searchButton = document.getElementById('stockSearchButton');
+        const searchSuggestions = document.getElementById('searchSuggestions');
+        const stockResultsContainer = document.getElementById('stockResultsContainer');
+        const addToWatchlistBtn = document.getElementById('addToWatchlistBtn');
+        const stockExamples = document.querySelectorAll('.stock-example');
+        
+        let priceChart = null;
+        let maChart = null;
+        let volumeChart = null;
+        let currentSymbol = '';
+        let currentTimeRange = '1y';
+        
+        // Function to perform stock search
+        function performSearch() {
+            const query = searchInput.value.trim();
+            
+            if (query.length < 1) {
+                showToast('Please enter a stock symbol or company name', 'warning');
+                return;
+            }
+            
+            // Show loading animation
+            const loadingAnimation = document.getElementById('loadingAnimation');
+            loadingAnimation.classList.remove('d-none');
+            searchSuggestions.innerHTML = '';
+            stockResultsContainer.classList.add('d-none');
+            
+            // Add pulse effect to search button
+            searchButton.classList.add('btn-pulse');
+            
+            // Check if the input contains a stock symbol (extract it from the format "AAPL - Apple Inc.")
+            const symbolMatch = query.match(/^([\w\.]+)(?:\s*-.*)?$/);
+            if (symbolMatch) {
+                let symbol = symbolMatch[1];
+                
+                // Check if this might be an Indian stock without the .NS suffix
+                if (!symbol.includes('.') && symbol.length >= 2 && !symbol.includes(' ')) {
+                    // Common Indian stock symbols that need .NS suffix
+                    const commonIndianStocks = [
+                        'TCS', 'RELIANCE', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'WIPRO', 'HINDUNILVR',
+                        'TATAMOTORS', 'BAJFINANCE', 'AXISBANK', 'MARUTI', 'HCLTECH', 'SUNPHARMA', 'ASIANPAINT',
+                        'ONGC', 'TITAN', 'BAJAJFINSV', 'ADANIENT', 'TATASTEEL', 'NTPC', 'POWERGRID', 'TVSMOTOR',
+                        'TECHM', 'ULTRACEMCO', 'NESTLEIND', 'DRREDDY'
+                    ];
+                    
+                    // Check for exact matches first
+                    if (commonIndianStocks.includes(symbol.toUpperCase())) {
+                        symbol = symbol.toUpperCase() + '.NS';
+                        console.log('Detected Indian stock, using:', symbol);
+                    }
+                    // Check for partial matches (like ICIC should match ICICIBANK)
+                    else {
+                        const partialMatch = commonIndianStocks.find(stock => 
+                            stock.startsWith(symbol.toUpperCase()) && 
+                            symbol.toUpperCase().length >= 3);
+                        
+                        if (partialMatch) {
+                            symbol = partialMatch + '.NS';
+                            console.log('Detected partial match for Indian stock, using:', symbol);
+                            // Show a toast to inform the user
+                            showToast(`Using ${symbol} based on your search`, 'info');
+                        }
+                    }
+                }
+                
+                loadStockData(symbol);
+                return;
+            }
+            
+            // If not a direct symbol, search for matches
+            fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    searchSuggestions.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        searchSuggestions.innerHTML = '<div class="list-group-item">No results found. Try a different search term.</div>';
+                        return;
+                    }
+                    
+                    // If only one result, load it directly
+                    if (data.length === 1) {
+                        searchInput.value = `${data[0].symbol} - ${data[0].name}`;
+                        loadStockData(data[0].symbol);
+                        return;
+                    }
+                    
+                    // Otherwise show the suggestions
+                    data.forEach(stock => {
+                        const item = document.createElement('a');
+                        item.href = "#";
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${stock.symbol}</strong>
+                                    <div class="text-muted small">${stock.name}</div>
+                                </div>
+                                <span class="badge ${stock.symbol.includes('.NS') ? 'bg-info' : 'bg-primary'}">
+                                    ${stock.symbol.includes('.NS') ? 'IN' : 'US'}
+                                </span>
+                            </div>
+                        `;
+                        
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            searchSuggestions.innerHTML = '';
+                            searchInput.value = `${stock.symbol} - ${stock.name}`;
+                            loadStockData(stock.symbol);
+                        });
+                        
+                        searchSuggestions.appendChild(item);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    searchSuggestions.innerHTML = '<div class="list-group-item text-danger">Error fetching results</div>';
+                });
+        }
+        
+        // Search button click handler
+        searchButton.addEventListener('click', performSearch);
+        
+        // Enter key press handler for search input
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+        
+        // Stock example click handlers
+        stockExamples.forEach(example => {
+            example.addEventListener('click', function(e) {
+                e.preventDefault();
+                const symbol = this.getAttribute('data-symbol');
+                searchInput.value = symbol;
+                performSearch();
+                
+                // Add animation to the clicked example
+                this.classList.add('animate__animated', 'animate__pulse');
+                setTimeout(() => {
+                    this.classList.remove('animate__animated', 'animate__pulse');
+                }, 1000);
+            });
+        });
+        
+        // Add animation to search input on focus
+        searchInput.addEventListener('focus', function() {
+            this.parentElement.classList.add('shadow-lg');
+        });
+        
+        searchInput.addEventListener('blur', function() {
+            this.parentElement.classList.remove('shadow-lg');
+        });
+        
+        // Add hover effects to buttons
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.classList.add('float-animation');
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.classList.remove('float-animation');
+            });
+        });
+        
+        // Autocomplete for stock search
+        searchInput.addEventListener('input', debounce(function() {
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                searchSuggestions.innerHTML = '';
+                return;
+            }
+            
+            // Fetch stock search results
+            fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    searchSuggestions.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        searchSuggestions.innerHTML = '<div class="list-group-item">No results found</div>';
+                        return;
+                    }
+                    
+                    data.forEach(stock => {
+                        const item = document.createElement('a');
+                        item.href = "#";
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${stock.symbol}</strong>
+                                    <div class="text-muted small">${stock.name}</div>
+                                </div>
+                                <span class="badge ${stock.symbol.includes('.NS') ? 'bg-info' : 'bg-primary'}">
+                                    ${stock.symbol.includes('.NS') ? 'IN' : 'US'}
+                                </span>
+                            </div>
+                        `;
+                        
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            searchSuggestions.innerHTML = '';
+                            searchInput.value = `${stock.symbol} - ${stock.name}`;
+                            loadStockData(stock.symbol);
+                        });
+                        
+                        searchSuggestions.appendChild(item);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    searchSuggestions.innerHTML = '<div class="list-group-item text-danger">Error fetching results</div>';
+                });
+        }, 300));
+        
+        // Load stock data
+        function loadStockData(symbol) {
+            currentSymbol = symbol;
+            
+            // Loading is already shown in performSearch function
+            // Just update the symbol in the loading message
+            document.getElementById('loadingAnimation').querySelector('h4').textContent = `Fetching ${symbol} Data...`;
+            
+            // Update links
+            document.getElementById('analysisLink').href = `/stock_analysis/${symbol}`;
+            document.getElementById('thesisLink').href = `/investment_thesis/${symbol}`;
+            
+            // Fetch stock info
+            fetch(`/api/stock/info?symbol=${encodeURIComponent(symbol)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showToast(`Error: ${data.error}`, 'danger');
+                        return;
+                    }
+                    
+                    // Update stock info
+                    document.getElementById('stockName').textContent = data.name;
+                    document.getElementById('stockSymbol').textContent = symbol;
+                    document.getElementById('stockExchange').textContent = data.exchange || 
+                        (symbol.includes('.NS') ? 'NSE (India)' : 'US Exchange');
+                    
+                    // Format price and change
+                    const price = typeof data.price === 'number' ? data.price.toFixed(2) : data.price;
+                    document.getElementById('stockPrice').textContent = `$${price}`;
+                    
+                    if (data.day_change && data.day_change_percent) {
+                        const isPositive = data.day_change > 0;
+                        document.getElementById('stockChange').innerHTML = `
+                            <span class="${isPositive ? 'text-success' : 'text-danger'}">
+                                <i class="fas ${isPositive ? 'fa-caret-up' : 'fa-caret-down'}"></i>
+                                ${data.day_change.toFixed(2)} (${data.day_change_percent.toFixed(2)}%)
+                            </span>
+                        `;
+                    }
+                    
+                    // Update stats
+                    document.getElementById('marketCap').textContent = formatLargeNumber(data.market_cap);
+                    document.getElementById('tableMarketCap').textContent = formatLargeNumber(data.market_cap);
+                    
+                    document.getElementById('peRatio').textContent = formatValue(data.pe_ratio);
+                    document.getElementById('tablePeRatio').textContent = formatValue(data.pe_ratio);
+                    
+                    document.getElementById('eps').textContent = formatValue(data.eps);
+                    document.getElementById('tableEps').textContent = formatValue(data.eps);
+                    
+                    document.getElementById('dividendYield').textContent = formatPercentage(data.dividend_yield);
+                    document.getElementById('tableDividendYield').textContent = formatPercentage(data.dividend_yield);
+                    
+                    document.getElementById('high52Week').textContent = `$${formatValue(data.fifty_two_week_high)}`;
+                    document.getElementById('low52Week').textContent = `$${formatValue(data.fifty_two_week_low)}`;
+                    
+                    document.getElementById('volume').textContent = formatLargeNumber(data.volume);
+                    document.getElementById('avgVolume').textContent = formatLargeNumber(data.avg_volume);
+                    
+                    document.getElementById('priceToBook').textContent = formatValue(data.price_to_book);
+                    document.getElementById('beta').textContent = formatValue(data.beta);
+                    
+                    document.getElementById('companyDescription').textContent = data.description || 'No description available';
+                    document.getElementById('sector').textContent = data.sector || 'N/A';
+                    document.getElementById('industry').textContent = data.industry || 'N/A';
+                    
+                    // Load chart data
+                    loadChartData(symbol, currentTimeRange);
+                    
+                    // Show stock results container with fade-in animation
+                    stockResultsContainer.classList.remove('d-none');
+                    stockResultsContainer.classList.add('fade-in');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('loadingAnimation').classList.add('d-none');
+                    searchButton.classList.remove('btn-pulse');
+                    showToast('Error loading stock data', 'danger');
+                });
+        }
+        
+        // Load chart data
+        function loadChartData(symbol, period = '1y', interval = '1d') {
+            // Show chart loading animation
+            const chartLoading = document.getElementById('chartLoading');
+            chartLoading.classList.remove('d-none');
+            
+            // Hide main loading animation if it's still visible
+            document.getElementById('loadingAnimation').classList.add('d-none');
+            
+            fetch(`/api/stock/data?symbol=${encodeURIComponent(symbol)}&period=${period}&interval=${interval}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Hide chart loading animation
+                    chartLoading.classList.add('d-none');
+                    
+                    if (data.error) {
+                        console.error(`Error loading data for ${symbol}:`, data.error);
+                        showToast(data.error, 'warning');
+                        
+                        // Show chart error message
+                        document.getElementById('chartError').classList.remove('d-none');
+                        return;
+                    }
+                    
+                    // Check if we have enough data
+                    if (!data.dates || data.dates.length === 0 || !data.prices || data.prices.length === 0) {
+                        console.error(`No data available for ${symbol}`);
+                        showToast(`No historical data available for ${symbol}`, 'warning');
+                        // Show chart error message
+                        document.getElementById('chartError').classList.remove('d-none');
+                        return;
+                    }
+                    
+                    try {
+                        // Create price chart
+                        createPriceChart(data);
+                        
+                        // Update chart info
+                        updateChartInfo(data);
+                    } catch (e) {
+                        console.error('Error creating charts:', e);
+                        showToast('Error creating charts', 'danger');
+                        // Show chart error message
+                        document.getElementById('chartError').classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error loading chart data', 'danger');
+                    // Hide chart loading animation
+                    document.getElementById('chartLoading').classList.add('d-none');
+                    // Show chart error message
+                    document.getElementById('chartError').classList.remove('d-none');
+                });
+        }
+        
+        // Update chart info with latest data
+        function updateChartInfo(data) {
+            if (!data || !data.prices || data.prices.length === 0) return;
+            
+            // Get the latest data point
+            const lastIndex = data.prices.length - 1;
+            
+            // Update chart info
+            document.getElementById('chartOpen').textContent = data.open && data.open[lastIndex] ? 
+                `$${formatValue(data.open[lastIndex])}` : 'N/A';
+                
+            document.getElementById('chartHigh').textContent = data.high && data.high[lastIndex] ? 
+                `$${formatValue(data.high[lastIndex])}` : 'N/A';
+                
+            document.getElementById('chartLow').textContent = data.low && data.low[lastIndex] ? 
+                `$${formatValue(data.low[lastIndex])}` : 'N/A';
+                
+            document.getElementById('chartClose').textContent = data.prices && data.prices[lastIndex] ? 
+                `$${formatValue(data.prices[lastIndex])}` : 'N/A';
+        }
+        
+        // Create price chart
+        function createPriceChart(data) {
+            // Check if we have valid data
+            if (!data || !data.dates || !data.prices || data.error) {
+                console.error('Invalid data for price chart:', data);
+                return;
+            }
+            
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            
+            if (priceChart) {
+                priceChart.destroy();
+            }
+            
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.dates,
+                    datasets: [{
+                        label: 'Price',
+                        data: data.prices,
+                        borderColor: '#4361ee',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Price: $${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                borderDash: [2, 2]
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create moving averages chart
+        function createMAChart(data) {
+            // Check if we have valid data
+            if (!data || !data.dates || !data.prices || data.error) {
+                console.error('Invalid data for MA chart:', data);
+                return;
+            }
+            
+            const ctx = document.getElementById('maChart').getContext('2d');
+            
+            if (maChart) {
+                maChart.destroy();
+            }
+            
+            maChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: 'Price',
+                            data: data.prices,
+                            borderColor: '#4361ee',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: '20-day MA',
+                            data: data.sma_20,
+                            borderColor: '#f72585',
+                            borderWidth: 1.5,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: '50-day MA',
+                            data: data.sma_50,
+                            borderColor: '#7209b7',
+                            borderWidth: 1.5,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: '200-day MA',
+                            data: data.sma_200,
+                            borderColor: '#4cc9f0',
+                            borderWidth: 1.5,
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                borderDash: [2, 2]
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create volume chart
+        function createVolumeChart(data) {
+            // Check if we have valid data
+            if (!data || !data.dates || !data.volumes || data.error) {
+                console.error('Invalid data for volume chart:', data);
+                return;
+            }
+            
+            const ctx = document.getElementById('volumeChart').getContext('2d');
+            
+            if (volumeChart) {
+                volumeChart.destroy();
+            }
+            
+            volumeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.dates,
+                    datasets: [{
+                        label: 'Volume',
+                        data: data.volumes,
+                        backgroundColor: 'rgba(67, 97, 238, 0.5)',
+                        borderColor: '#4361ee',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Volume: ${formatLargeNumber(context.raw)}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                borderDash: [2, 2]
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatLargeNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Time period buttons
+        document.querySelectorAll('[data-period]').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('[data-period]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                const period = this.getAttribute('data-period');
+                currentTimeRange = period;
+                
+                if (currentSymbol) {
+                    loadChartData(currentSymbol, period);
+                }
+            });
+        });
+        
+        // Retry chart button
+        document.getElementById('retryChartBtn').addEventListener('click', function() {
+            document.getElementById('chartError').classList.add('d-none');
+            if (currentSymbol) {
+                loadChartData(currentSymbol, currentTimeRange);
+            }
+        });
+        
+        // Add to watchlist button
+        addToWatchlistBtn.addEventListener('click', function() {
+            if (!currentSymbol) return;
+            
+            const stockName = document.getElementById('stockName').textContent;
+            
+            fetch('/api/watchlist/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    symbol: currentSymbol,
+                    name: stockName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`${currentSymbol} added to watchlist`, 'success');
+                    addToWatchlistBtn.innerHTML = '<i class="fas fa-check me-1"></i> Added to Watchlist';
+                    addToWatchlistBtn.classList.remove('btn-primary');
+                    addToWatchlistBtn.classList.add('btn-success');
+                    addToWatchlistBtn.disabled = true;
+                } else if (data.error === 'already_exists') {
+                    showToast(`${currentSymbol} is already in your watchlist`, 'info');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error adding to watchlist', 'danger');
+            });
+        });
+        
+        // Helper functions
+        function formatLargeNumber(number) {
+            if (!number || isNaN(number)) return 'N/A';
+            
+            if (number >= 1000000000) {
+                return `${(number / 1000000000).toFixed(2)}B`;
+            } else if (number >= 1000000) {
+                return `${(number / 1000000).toFixed(2)}M`;
+            } else if (number >= 1000) {
+                return `${(number / 1000).toFixed(2)}K`;
+            }
+            return number.toString();
+        }
+        
+        function formatPercentage(number) {
+            if (!number || isNaN(number)) return 'N/A';
+            return `${(number * 100).toFixed(2)}%`;
+        }
+        
+        function formatValue(value) {
+            if (!value || value === 'N/A' || isNaN(value)) return 'N/A';
+            return typeof value === 'number' ? value.toFixed(2) : value;
+        }
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // Check for direct stock symbol in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const symbolParam = urlParams.get('symbol');
+        if (symbolParam) {
+            searchInput.value = symbolParam;
+            loadStockData(symbolParam);
+        }
+        
+        // Update stock search link in navbar
+        const stockSearchLink = document.getElementById('stockSearchLink');
+        if (stockSearchLink) {
+            stockSearchLink.href = '/stock_search';
+        }
+    });
+</script>
+{% endblock %}

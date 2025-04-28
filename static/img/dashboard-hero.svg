@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#222B45" />
+      <stop offset="100%" stop-color="#151A30" />
+    </linearGradient>
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#253053" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+    <linearGradient id="chartLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="600" height="400" rx="24" fill="url(#bgGradient)" />
+  <!-- Dashboard Card -->
+  <rect x="70" y="60" width="460" height="260" rx="20" fill="url(#cardGradient)" stroke="#334155" stroke-width="2" />
+  <!-- Title -->
+  <text x="300" y="110" text-anchor="middle" font-size="32" font-family="Segoe UI, Arial, sans-serif" fill="#fff" font-weight="bold">StockSense AI</text>
+  <text x="300" y="145" text-anchor="middle" font-size="18" font-family="Segoe UI, Arial, sans-serif" fill="#A5B4FC">Dashboard</text>
+  <!-- Chart Axes -->
+  <line x1="140" y1="260" x2="460" y2="260" stroke="#475569" stroke-width="2" />
+  <line x1="140" y1="180" x2="140" y2="260" stroke="#475569" stroke-width="2" />
+  <!-- Chart Line -->
+  <polyline points="140,250 200,220 260,230 320,200 380,210 440,180 460,220" fill="none" stroke="url(#chartLine)" stroke-width="4" />
+  <!-- Chart Dots -->
+  <circle cx="140" cy="250" r="5" fill="#60A5FA" />
+  <circle cx="200" cy="220" r="5" fill="#60A5FA" />
+  <circle cx="260" cy="230" r="5" fill="#60A5FA" />
+  <circle cx="320" cy="200" r="5" fill="#60A5FA" />
+  <circle cx="380" cy="210" r="5" fill="#60A5FA" />
+  <circle cx="440" cy="180" r="5" fill="#60A5FA" />
+  <circle cx="460" cy="220" r="5" fill="#60A5FA" />
+  <!-- Card Shadow -->
+  <ellipse cx="300" cy="340" rx="170" ry="18" fill="#000" opacity="0.08" />
+  <!-- Decorative Sparkles -->
+  <circle cx="125" cy="90" r="2" fill="#fff" opacity="0.5" />
+  <circle cx="480" cy="80" r="2.5" fill="#fff" opacity="0.35" />
+  <circle cx="180" cy="320" r="1.5" fill="#fff" opacity="0.25" />
+  <circle cx="350" cy="70" r="2" fill="#fff" opacity="0.4" />
+</svg>
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#222B45" />
+      <stop offset="100%" stop-color="#151A30" />
+    </linearGradient>
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#253053" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+    <linearGradient id="chartLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="600" height="400" rx="24" fill="url(#bgGradient)" />
+  <!-- Card -->
+  <rect x="60" y="60" width="480" height="280" rx="20" fill="url(#cardGradient)" stroke="#334155" stroke-width="2" />
+  <!-- Title -->
+  <text x="300" y="110" text-anchor="middle" font-size="32" font-family="Segoe UI, Arial, sans-serif" fill="#fff" font-weight="bold">StockSense AI</text>
+  <text x="300" y="145" text-anchor="middle" font-size="18" font-family="Segoe UI, Arial, sans-serif" fill="#A5B4FC">Dashboard</text>
+  <!-- Chart Axes -->
+  <line x1="120" y1="260" x2="480" y2="260" stroke="#475569" stroke-width="2" />
+  <line x1="120" y1="180" x2="120" y2="260" stroke="#475569" stroke-width="2" />
+  <!-- Chart Line -->
+  <polyline points="120,250 180,220 240,230 300,200 360,210 420,180 480,220" fill="none" stroke="url(#chartLine)" stroke-width="4" />
+  <!-- Chart Dots -->
+  <circle cx="120" cy="250" r="5" fill="#60A5FA" />
+  <circle cx="180" cy="220" r="5" fill="#60A5FA" />
+  <circle cx="240" cy="230" r="5" fill="#60A5FA" />
+  <circle cx="300" cy="200" r="5" fill="#60A5FA" />
+  <circle cx="360" cy="210" r="5" fill="#60A5FA" />
+  <circle cx="420" cy="180" r="5" fill="#60A5FA" />
+  <circle cx="480" cy="220" r="5" fill="#60A5FA" />
+  <!-- Card Shadow -->
+  <ellipse cx="300" cy="355" rx="170" ry="18" fill="#000" opacity="0.08" />
+</svg>
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F172A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E293B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1E293B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#334155;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:0.7" />
+      <stop offset="100%" style="stop-color:#4F46E5;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Dashboard Background -->
+  <rect width="800" height="600" rx="12" fill="url(#bgGradient)" />
+  
+  <!-- Header -->
+  <g transform="translate(20, 20)">
+    <!-- Logo -->
+    <g transform="translate(0, 0)">
+      <circle cx="20" cy="20" r="20" fill="#4F46E5" />
+      <text x="50" y="25" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">StockSense AI</text>
+    </g>
+    
+    <!-- Navigation -->
+    <g transform="translate(200, 0)">
+      <rect width="100" height="40" rx="8" fill="#4F46E5" />
+      <text x="50" y="25" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Dashboard</text>
+      
+      <rect x="110" width="100" height="40" rx="8" fill="#334155" />
+      <text x="160" y="25" font-family="Arial, sans-serif" font-size="14" fill="#FFFFFF" text-anchor="middle">Stocks</text>
+      
+      <rect x="220" width="100" height="40" rx="8" fill="#334155" />
+      <text x="270" y="25" font-family="Arial, sans-serif" font-size="14" fill="#FFFFFF" text-anchor="middle">Analysis</text>
+    </g>
+  </g>
+  
+  <!-- Main Content -->
+  <g transform="translate(20, 80)">
+    <!-- Page Title -->
+    <text x="0" y="30" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF">Dashboard Overview</text>
+    
+    <!-- Market Overview Cards -->
+    <g transform="translate(0, 50)">
+      <!-- Card 1 -->
+      <rect width="250" height="150" rx="12" fill="url(#cardGradient)" />
+      <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">Market Overview</text>
+      
+      <!-- Market Stats -->
+      <g transform="translate(20, 60)">
+        <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" fill="#94A3B8">S&P 500</text>
+        <text x="80" y="0" font-family="Arial, sans-serif" font-size="14" fill="#FFFFFF">4,783.35</text>
+        <text x="160" y="0" font-family="Arial, sans-serif" font-size="14" fill="#10B981">+1.24%</text>
+        
+        <text x="0" y="30" font-family="Arial, sans-serif" font-size="14" fill="#94A3B8">NASDAQ</text>
+        <text x="80" y="30" font-family="Arial, sans-serif" font-size="14" fill="#FFFFFF">16,742.39</text>
+        <text x="160" y="30" font-family="Arial, sans-serif" font-size="14" fill="#10B981">+1.56%</text>
+        
+        <text x="0" y="60" font-family="Arial, sans-serif" font-size="14" fill="#94A3B8">DOW</text>
+        <text x="80" y="60" font-family="Arial, sans-serif" font-size="14" fill="#FFFFFF">38,239.05</text>
+        <text x="160" y="60" font-family="Arial, sans-serif" font-size="14" fill="#10B981">+0.87%</text>
+      </g>
+      
+      <!-- Card 2 -->
+      <g transform="translate(270, 0)">
+        <rect width="250" height="150" rx="12" fill="url(#cardGradient)" />
+        <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">Portfolio Value</text>
+        
+        <!-- Portfolio Value -->
+        <text x="20" y="70" font-family="Arial, sans-serif" font-size="14" fill="#94A3B8">Total Value</text>
+        <text x="20" y="100" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF">$128,456.92</text>
+        <text x="20" y="130" font-family="Arial, sans-serif" font-size="16" fill="#10B981">+$3,245.67 (2.59%)</text>
+      </g>
+      
+      <!-- Card 3 -->
+      <g transform="translate(540, 0)">
+        <rect width="250" height="150" rx="12" fill="url(#cardGradient)" />
+        <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">AI Recommendations</text>
+        
+        <!-- Recommendations -->
+        <g transform="translate(20, 60)">
+          <circle cx="5" cy="0" r="5" fill="#10B981" />
+          <text x="20" y="5" font-family="Arial, sans-serif" font-size="14" fill="#FFFFFF">Buy AAPL - Strong growth</text>
+          
+          <circle cx="5" cy="30" r="5" fill="#10B981" />
+          <text x="20" y="35" font-family="Arial, sans-serif" font-size="14" fill="#FFFFFF">Buy MSFT - AI momentum</text>
+          
+          <circle cx="5" cy="60" r="5" fill="#EF4444" />
+          <text x="20" y="65" font-family="Arial, sans-serif" font-size="14" fill="#FFFFFF">Sell NFLX - Competition</text>
+        </g>
+      </g>
+    </g>
+    
+    <!-- Charts Section -->
+    <g transform="translate(0, 220)">
+      <!-- Main Chart -->
+      <rect width="550" height="250" rx="12" fill="url(#cardGradient)" />
+      <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">Portfolio Performance</text>
+      
+      <!-- Chart Grid -->
+      <g transform="translate(40, 60)" stroke="#475569" stroke-width="1" stroke-dasharray="5,5">
+        <line x1="0" y1="0" x2="470" y2="0" />
+        <line x1="0" y1="40" x2="470" y2="40" />
+        <line x1="0" y1="80" x2="470" y2="80" />
+        <line x1="0" y1="120" x2="470" y2="120" />
+        <line x1="0" y1="160" x2="470" y2="160" />
+      </g>
+      
+      <!-- Chart Lines -->
+      <g transform="translate(40, 60)">
+        <!-- Area Chart -->
+        <path d="M0,120 C40,100 80,110 120,90 C160,70 200,80 240,60 C280,40 320,50 360,30 C400,20 440,10 470,20 L470,160 L0,160 Z" fill="url(#chartGradient)" />
+        <polyline points="0,120 40,100 80,110 120,90 160,70 200,80 240,60 280,40 320,50 360,30 400,20 440,10 470,20" stroke="#4F46E5" stroke-width="3" fill="none" />
+      </g>
+      
+      <!-- Side Panel -->
+      <g transform="translate(570, 0)">
+        <rect width="220" height="250" rx="12" fill="url(#cardGradient)" />
+        <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">Top Holdings</text>
+        
+        <!-- Holdings List -->
+        <g transform="translate(20, 60)">
+          <!-- AAPL -->
+          <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF">AAPL</text>
+          <text x="50" y="0" font-family="Arial, sans-serif" font-size="14" fill="#94A3B8">Apple Inc.</text>
+          <text x="170" y="0" font-family="Arial, sans-serif" font-size="14" fill="#10B981">+1.8%</text>
+          
+          <!-- Progress Bar -->
+          <rect x="0" y="10" width="180" height="6" rx="3" fill="#334155" />
+          <rect x="0" y="10" width="140" height="6" rx="3" fill="#4F46E5" />
+          
+          <!-- MSFT -->
+          <text x="0" y="40" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF">MSFT</text>
+          <text x="50" y="40" font-family="Arial, sans-serif" font-size="14" fill="#94A3B8">Microsoft</text>
+          <text x="170" y="40" font-family="Arial, sans-serif" font-size="14" fill="#10B981">+2.3%</text>
+          
+          <!-- Progress Bar -->
+          <rect x="0" y="50" width="180" height="6" rx="3" fill="#334155" />
+          <rect x="0" y="50" width="120" height="6" rx="3" fill="#4F46E5" />
+          
+          <!-- AMZN -->
+          <text x="0" y="80" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF">AMZN</text>
+          <text x="50" y="80" font-family="Arial, sans-serif" font-size="14" fill="#94A3B8">Amazon</text>
+          <text x="170" y="80" font-family="Arial, sans-serif" font-size="14" fill="#10B981">+0.7%</text>
+          
+          <!-- Progress Bar -->
+          <rect x="0" y="90" width="180" height="6" rx="3" fill="#334155" />
+          <rect x="0" y="90" width="100" height="6" rx="3" fill="#4F46E5" />
+          
+          <!-- GOOGL -->
+          <text x="0" y="120" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF">GOOGL</text>
+          <text x="50" y="120" font-family="Arial, sans-serif" font-size="14" fill="#94A3B8">Alphabet</text>
+          <text x="170" y="120" font-family="Arial, sans-serif" font-size="14" fill="#EF4444">-0.5%</text>
+          
+          <!-- Progress Bar -->
+          <rect x="0" y="130" width="180" height="6" rx="3" fill="#334155" />
+          <rect x="0" y="130" width="80" height="6" rx="3" fill="#4F46E5" />
+          
+          <!-- TSLA -->
+          <text x="0" y="160" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF">TSLA</text>
+          <text x="50" y="160" font-family="Arial, sans-serif" font-size="14" fill="#94A3B8">Tesla Inc.</text>
+          <text x="170" y="160" font-family="Arial, sans-serif" font-size="14" fill="#10B981">+3.2%</text>
+          
+          <!-- Progress Bar -->
+          <rect x="0" y="170" width="180" height="6" rx="3" fill="#334155" />
+          <rect x="0" y="170" width="60" height="6" rx="3" fill="#4F46E5" />
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="#0F172A" />
+  <circle cx="100" cy="100" r="80" fill="url(#gradient)" opacity="0.8" />
+  <g transform="translate(50, 70)">
+    <!-- Brain icon representing AI -->
+    <path d="M50,0 C60,0 70,10 70,20 C70,25 67,30 62,33 C67,36 70,41 70,46 C70,56 60,66 50,66 C40,66 30,56 30,46 C30,41 33,36 38,33 C33,30 30,25 30,20 C30,10 40,0 50,0 Z" fill="#ffffff" opacity="0.9" />
+    <path d="M50,10 C55,10 60,15 60,20 C60,25 55,30 50,30 C45,30 40,25 40,20 C40,15 45,10 50,10 Z" fill="#0F172A" />
+    <path d="M50,36 C55,36 60,41 60,46 C60,51 55,56 50,56 C45,56 40,51 40,46 C40,41 45,36 50,36 Z" fill="#0F172A" />
+  </g>
+  <!-- Stock chart lines -->
+  <polyline points="40,140 60,120 80,130 100,110 120,90 140,105 160,85" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="40" cy="140" r="3" fill="#ffffff" />
+  <circle cx="60" cy="120" r="3" fill="#ffffff" />
+  <circle cx="80" cy="130" r="3" fill="#ffffff" />
+  <circle cx="100" cy="110" r="3" fill="#ffffff" />
+  <circle cx="120" cy="90" r="3" fill="#ffffff" />
+  <circle cx="140" cy="105" r="3" fill="#ffffff" />
+  <circle cx="160" cy="85" r="3" fill="#ffffff" />
+</svg>

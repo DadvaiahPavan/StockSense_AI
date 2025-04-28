@@ -1,0 +1,715 @@
+{% extends 'base.html' %}
+
+{% block title %}Strategy Builder - StockSense AI{% endblock %}
+
+{% block content %}
+<div class="strategy-builder-container py-4">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="fw-bold mb-0">Strategy Builder</h2>
+                <p class="text-muted">Create and backtest trading strategies</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Strategy Builder Form -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Build Your Strategy</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="strategyForm">
+                            <div class="mb-3">
+                                <label for="stockSymbol" class="form-label">Stock Symbol</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="stockSymbol" placeholder="e.g. AAPL, MSFT, RELIANCE.NS">
+                                </div>
+                                <div id="symbolSuggestions" class="list-group mt-2"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="strategyType" class="form-label">Strategy Type</label>
+                                <select class="form-select" id="strategyType">
+                                    <option value="">Select a strategy</option>
+                                    {% for strategy in strategies %}
+                                        <option value="{{ strategy.id }}">{{ strategy.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="strategy-description text-muted small mt-2" id="strategyDescription"></div>
+                            </div>
+                            
+                            <div id="strategyParameters"></div>
+                            
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate">
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary" id="backtestBtn">
+                                    <i class="fas fa-play me-1"></i> Run Backtest
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Backtest Results -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">Backtest Results</h5>
+                        <div class="strategy-actions" id="strategyActions" style="display: none;">
+                            <button class="btn btn-sm btn-outline-primary me-2" id="saveStrategyBtn">
+                                <i class="fas fa-save me-1"></i> Save Strategy
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="exportResultsBtn">
+                                <i class="fas fa-download me-1"></i> Export Results
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="backtestLoading" style="display: none;">
+                            <div class="d-flex justify-content-center align-items-center" style="height: 400px;">
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary mb-3" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mb-0">Running backtest...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="noBacktestData">
+                            <div class="d-flex justify-content-center align-items-center" style="height: 400px;">
+                                <div class="text-center">
+                                    <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                                    <h5>No backtest data</h5>
+                                    <p class="text-muted">Configure your strategy and run a backtest to see results</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="backtestResults" style="display: none;">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="backtest-summary-card p-3 rounded">
+                                        <h6 class="fw-bold mb-3">Performance Summary</h6>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div>Total Return:</div>
+                                            <div class="fw-bold" id="totalReturn"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div>Buy & Hold Return:</div>
+                                            <div class="fw-bold" id="buyHoldReturn"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div>Total Trades:</div>
+                                            <div class="fw-bold" id="totalTrades"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div>Win Rate:</div>
+                                            <div class="fw-bold" id="winRate"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <div>Max Drawdown:</div>
+                                            <div class="fw-bold" id="maxDrawdown"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="strategy-info-card p-3 rounded h-100">
+                                        <h6 class="fw-bold mb-3">Strategy Information</h6>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div>Symbol:</div>
+                                            <div class="fw-bold" id="resultSymbol"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div>Strategy:</div>
+                                            <div class="fw-bold" id="resultStrategy"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div>Period:</div>
+                                            <div class="fw-bold" id="resultPeriod"></div>
+                                        </div>
+                                        <div id="resultParameters"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="chart-container">
+                                        <canvas id="performanceChart" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6 class="fw-bold mb-3">Trade History</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Entry Date</th>
+                                                    <th>Entry Price</th>
+                                                    <th>Exit Date</th>
+                                                    <th>Exit Price</th>
+                                                    <th>Profit</th>
+                                                    <th>Return</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tradesTable"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Predefined Strategies -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 fw-bold">Predefined Strategies</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            {% for strategy in strategies %}
+                                {% if strategy.id != 'custom' %}
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="predefined-strategy-card h-100">
+                                        <div class="card border-0 shadow-sm h-100">
+                                            <div class="card-body">
+                                                <h5 class="fw-bold mb-2">{{ strategy.name }}</h5>
+                                                <p class="text-muted small">{{ strategy.description }}</p>
+                                                <button class="btn btn-sm btn-outline-primary select-strategy" data-strategy="{{ strategy.id }}">
+                                                    <i class="fas fa-plus me-1"></i> Select
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Strategy Modal -->
+<div class="modal fade" id="saveStrategyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Save Strategy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="saveStrategyForm">
+                    <div class="mb-3">
+                        <label for="strategyName" class="form-label">Strategy Name</label>
+                        <input type="text" class="form-control" id="strategyName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Strategy Details</label>
+                        <div class="strategy-details-preview p-3 rounded">
+                            <div class="d-flex justify-content-between mb-2">
+                                <div>Symbol:</div>
+                                <div class="fw-bold" id="previewSymbol"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <div>Strategy Type:</div>
+                                <div class="fw-bold" id="previewStrategy"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <div>Performance:</div>
+                                <div class="fw-bold" id="previewPerformance"></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmSaveStrategy">Save Strategy</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .strategy-builder-container {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 56px - 174px); /* Subtract navbar and footer height */
+    }
+    
+    .strategy-description {
+        min-height: 40px;
+    }
+    
+    .backtest-summary-card {
+        background-color: #f8f9ff;
+        border-left: 4px solid #4e73df;
+    }
+    
+    .strategy-info-card {
+        background-color: #f8f9fa;
+        border-left: 4px solid #1cc88a;
+    }
+    
+    .predefined-strategy-card {
+        transition: transform 0.3s ease;
+    }
+    
+    .predefined-strategy-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .strategy-details-preview {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4e73df;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize date inputs with default values
+        const today = new Date();
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(today.getFullYear() - 1);
+        
+        document.getElementById('startDate').valueAsDate = oneYearAgo;
+        document.getElementById('endDate').valueAsDate = today;
+        
+        // Strategy type selection
+        const strategyType = document.getElementById('strategyType');
+        const strategyDescription = document.getElementById('strategyDescription');
+        const strategyParameters = document.getElementById('strategyParameters');
+        
+        // Strategy data from backend
+        const strategies = {{ strategies|tojson }};
+        
+        strategyType.addEventListener('change', function() {
+            const selectedStrategy = strategies.find(s => s.id === this.value);
+            
+            if (selectedStrategy) {
+                strategyDescription.textContent = selectedStrategy.description;
+                
+                // Generate parameter inputs
+                strategyParameters.innerHTML = '';
+                
+                if (selectedStrategy.parameters) {
+                    const parametersTitle = document.createElement('h6');
+                    parametersTitle.className = 'fw-bold mb-3 mt-4';
+                    parametersTitle.textContent = 'Strategy Parameters';
+                    strategyParameters.appendChild(parametersTitle);
+                    
+                    for (const [paramName, paramConfig] of Object.entries(selectedStrategy.parameters)) {
+                        const formGroup = document.createElement('div');
+                        formGroup.className = 'mb-3';
+                        
+                        const label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.setAttribute('for', `param_${paramName}`);
+                        label.textContent = paramConfig.description;
+                        
+                        let input;
+                        
+                        if (paramConfig.type === 'text') {
+                            input = document.createElement('textarea');
+                            input.className = 'form-control';
+                            input.rows = 5;
+                        } else {
+                            input = document.createElement('input');
+                            input.className = 'form-control';
+                            
+                            if (paramConfig.type === 'int' || paramConfig.type === 'float') {
+                                input.type = 'number';
+                                
+                                if (paramConfig.min !== undefined) {
+                                    input.min = paramConfig.min;
+                                }
+                                
+                                if (paramConfig.max !== undefined) {
+                                    input.max = paramConfig.max;
+                                }
+                                
+                                if (paramConfig.type === 'float') {
+                                    input.step = '0.1';
+                                }
+                            }
+                        }
+                        
+                        input.id = `param_${paramName}`;
+                        input.name = paramName;
+                        input.value = paramConfig.default !== undefined ? paramConfig.default : '';
+                        
+                        formGroup.appendChild(label);
+                        formGroup.appendChild(input);
+                        strategyParameters.appendChild(formGroup);
+                    }
+                }
+            } else {
+                strategyDescription.textContent = '';
+                strategyParameters.innerHTML = '';
+            }
+        });
+        
+        // Select predefined strategy buttons
+        document.querySelectorAll('.select-strategy').forEach(button => {
+            button.addEventListener('click', function() {
+                const strategyId = this.dataset.strategy;
+                strategyType.value = strategyId;
+                strategyType.dispatchEvent(new Event('change'));
+                
+                // Scroll to strategy form
+                document.querySelector('.strategy-builder-container').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+        
+        // Stock symbol search
+        const stockSymbol = document.getElementById('stockSymbol');
+        const symbolSuggestions = document.getElementById('symbolSuggestions');
+        
+        stockSymbol.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                symbolSuggestions.innerHTML = '';
+                return;
+            }
+            
+            // Fetch stock search results
+            fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    symbolSuggestions.innerHTML = '';
+                    
+                    data.forEach(stock => {
+                        const item = document.createElement('a');
+                        item.href = '#';
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${stock.symbol}</strong>
+                                    <div class="text-muted small">${stock.name}</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            stockSymbol.value = stock.symbol;
+                            symbolSuggestions.innerHTML = '';
+                        });
+                        
+                        symbolSuggestions.appendChild(item);
+                    });
+                });
+        });
+        
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target !== stockSymbol && e.target !== symbolSuggestions) {
+                symbolSuggestions.innerHTML = '';
+            }
+        });
+        
+        // Backtest form submission
+        const strategyForm = document.getElementById('strategyForm');
+        const backtestBtn = document.getElementById('backtestBtn');
+        const backtestLoading = document.getElementById('backtestLoading');
+        const noBacktestData = document.getElementById('noBacktestData');
+        const backtestResults = document.getElementById('backtestResults');
+        const strategyActions = document.getElementById('strategyActions');
+        
+        strategyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const symbol = stockSymbol.value.trim();
+            const strategy = strategyType.value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!symbol) {
+                alert('Please enter a stock symbol');
+                return;
+            }
+            
+            if (!strategy) {
+                alert('Please select a strategy');
+                return;
+            }
+            
+            if (!startDate || !endDate) {
+                alert('Please select start and end dates');
+                return;
+            }
+            
+            // Collect parameters
+            const parameters = {};
+            const selectedStrategy = strategies.find(s => s.id === strategy);
+            
+            if (selectedStrategy && selectedStrategy.parameters) {
+                for (const [paramName, paramConfig] of Object.entries(selectedStrategy.parameters)) {
+                    const paramInput = document.getElementById(`param_${paramName}`);
+                    
+                    if (paramInput) {
+                        let value = paramInput.value;
+                        
+                        if (paramConfig.type === 'int') {
+                            value = parseInt(value);
+                        } else if (paramConfig.type === 'float') {
+                            value = parseFloat(value);
+                        }
+                        
+                        parameters[paramName] = value;
+                    }
+                }
+            }
+            
+            // Show loading
+            backtestBtn.disabled = true;
+            backtestLoading.style.display = 'block';
+            noBacktestData.style.display = 'none';
+            backtestResults.style.display = 'none';
+            
+            // Run backtest
+            fetch('/api/strategy/backtest', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    symbol: symbol,
+                    strategy_type: strategy,
+                    parameters: parameters,
+                    start_date: startDate,
+                    end_date: endDate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading
+                backtestBtn.disabled = false;
+                backtestLoading.style.display = 'none';
+                
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                    noBacktestData.style.display = 'block';
+                    return;
+                }
+                
+                // Show results
+                backtestResults.style.display = 'block';
+                strategyActions.style.display = 'block';
+                
+                // Update summary metrics
+                document.getElementById('totalReturn').textContent = `${(data.metrics.total_return * 100).toFixed(2)}%`;
+                document.getElementById('buyHoldReturn').textContent = `${(data.metrics.buy_hold_return * 100).toFixed(2)}%`;
+                document.getElementById('totalTrades').textContent = data.metrics.total_trades;
+                document.getElementById('winRate').textContent = `${(data.metrics.win_rate * 100).toFixed(2)}%`;
+                document.getElementById('maxDrawdown').textContent = `${(data.metrics.max_drawdown * 100).toFixed(2)}%`;
+                
+                // Update strategy info
+                document.getElementById('resultSymbol').textContent = data.symbol;
+                document.getElementById('resultStrategy').textContent = selectedStrategy ? selectedStrategy.name : data.strategy;
+                document.getElementById('resultPeriod').textContent = `${data.start_date} to ${data.end_date}`;
+                
+                // Update parameters
+                const resultParameters = document.getElementById('resultParameters');
+                resultParameters.innerHTML = '';
+                
+                if (data.parameters) {
+                    for (const [paramName, paramValue] of Object.entries(data.parameters)) {
+                        const paramRow = document.createElement('div');
+                        paramRow.className = 'd-flex justify-content-between mb-2';
+                        
+                        const paramLabel = document.createElement('div');
+                        paramLabel.textContent = paramName + ':';
+                        
+                        const paramValueEl = document.createElement('div');
+                        paramValueEl.className = 'fw-bold';
+                        paramValueEl.textContent = paramValue;
+                        
+                        paramRow.appendChild(paramLabel);
+                        paramRow.appendChild(paramValueEl);
+                        resultParameters.appendChild(paramRow);
+                    }
+                }
+                
+                // Update trades table
+                const tradesTable = document.getElementById('tradesTable');
+                tradesTable.innerHTML = '';
+                
+                if (data.trades && data.trades.length > 0) {
+                    data.trades.forEach(trade => {
+                        const row = document.createElement('tr');
+                        
+                        row.innerHTML = `
+                            <td>${trade.entry_date}</td>
+                            <td>$${trade.entry_price.toFixed(2)}</td>
+                            <td>${trade.exit_date}</td>
+                            <td>$${trade.exit_price.toFixed(2)}</td>
+                            <td class="${trade.profit >= 0 ? 'text-success' : 'text-danger'}">
+                                ${trade.profit >= 0 ? '+' : ''}$${trade.profit.toFixed(2)}
+                            </td>
+                            <td class="${trade.profit_percent >= 0 ? 'text-success' : 'text-danger'}">
+                                ${trade.profit_percent >= 0 ? '+' : ''}${trade.profit_percent.toFixed(2)}%
+                            </td>
+                        `;
+                        
+                        tradesTable.appendChild(row);
+                    });
+                } else {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = '<td colspan="6" class="text-center">No trades executed</td>';
+                    tradesTable.appendChild(emptyRow);
+                }
+                
+                // Initialize performance chart
+                const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+                
+                // Destroy existing chart if it exists and has a destroy method
+                if (window.performanceChart && typeof window.performanceChart.destroy === 'function') {
+                    window.performanceChart.destroy();
+                }
+                
+                window.performanceChart = new Chart(performanceCtx, {
+                    type: 'line',
+                    data: {
+                        labels: data.chart_data.dates,
+                        datasets: [
+                            {
+                                label: 'Strategy Returns',
+                                data: data.chart_data.cumulative_strategy_returns,
+                                borderColor: '#4e73df',
+                                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                pointHoverRadius: 5,
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'Buy & Hold Returns',
+                                data: data.chart_data.cumulative_returns,
+                                borderColor: '#1cc88a',
+                                backgroundColor: 'transparent',
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                pointHoverRadius: 5,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${((context.raw - 1) * 100).toFixed(2)}%`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    borderDash: [2],
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return ((value - 1) * 100).toFixed(0) + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Save strategy modal data
+                document.getElementById('previewSymbol').textContent = data.symbol;
+                document.getElementById('previewStrategy').textContent = selectedStrategy ? selectedStrategy.name : data.strategy;
+                document.getElementById('previewPerformance').textContent = `${(data.metrics.total_return * 100).toFixed(2)}%`;
+                
+                // Scroll to results
+                backtestResults.scrollIntoView({ behavior: 'smooth' });
+            })
+            .catch(error => {
+                backtestBtn.disabled = false;
+                backtestLoading.style.display = 'none';
+                noBacktestData.style.display = 'block';
+                alert('Error running backtest. Please try again.');
+                console.error('Error:', error);
+            });
+        });
+        
+        // Save strategy button
+        const saveStrategyBtn = document.getElementById('saveStrategyBtn');
+        const saveStrategyModal = new bootstrap.Modal(document.getElementById('saveStrategyModal'));
+        
+        saveStrategyBtn.addEventListener('click', function() {
+            saveStrategyModal.show();
+        });
+        
+        // Confirm save strategy
+        const confirmSaveStrategy = document.getElementById('confirmSaveStrategy');
+        
+        confirmSaveStrategy.addEventListener('click', function() {
+            const strategyName = document.getElementById('strategyName').value.trim();
+            
+            if (!strategyName) {
+                alert('Please enter a strategy name');
+                return;
+            }
+            
+            // In a real app, this would save the strategy to the database
+            alert(`Strategy "${strategyName}" saved successfully!`);
+            saveStrategyModal.hide();
+        });
+        
+        // Export results button
+        const exportResultsBtn = document.getElementById('exportResultsBtn');
+        
+        exportResultsBtn.addEventListener('click', function() {
+            // In a real app, this would export the results to CSV or PDF
+            alert('Results exported successfully!');
+        });
+    });
+</script>
+{% endblock %}
