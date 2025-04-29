@@ -31,7 +31,8 @@ StockSense AI is a web-based AI platform that integrates real-time stock market 
 
 📱 Responsive UI: Built with Bootstrap, AJAX, and Chart.js for charts
 
-## Setup Instructions
+##  Architecture
+(https://i.ibb.co/p6MngcY4/diagram-export-4-29-2025-4-29-50-PM.png)
 
 1. Clone this repository
 2. Install dependencies:
