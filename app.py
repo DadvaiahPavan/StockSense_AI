@@ -1008,9 +1008,33 @@ def api_predict_stock(symbol):
             "symbol": symbol
         })
 
+# Check database tables and initialize if needed
+def check_db_tables():
+    try:
+        conn = get_db_connection()
+        # Try to query the users table to see if it exists
+        conn.execute('SELECT 1 FROM users LIMIT 1')
+        conn.close()
+        print("Database tables already exist")
+        return True
+    except sqlite3.OperationalError:
+        # Table doesn't exist, initialize DB
+        print("Database tables not found. Initializing database...")
+        init_db()
+        print("Database initialized successfully")
+        return False
+
+# Initialize database tables before the first request
+@app.before_first_request
+def initialize_database():
+    check_db_tables()
+
 if __name__ == '__main__':
     # Check if database exists, if not initialize it
     if not os.path.exists(app.config['DATABASE']):
         init_db()
+    else:
+        # Even if file exists, check if tables are present
+        check_db_tables()
     
     app.run(debug=False)
