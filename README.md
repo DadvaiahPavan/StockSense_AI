@@ -36,50 +36,38 @@ StockSense AI is a web-based AI platform that integrates real-time stock market 
 
 
 ## Technologies Used
-Flask (Python)
+- Flask (Python)
 
-SQLite
+- SQLite
 
-Bootstrap 5 + HTML5 + JavaScript
+- Bootstrap 5 + HTML5 + JavaScript
 
-Chart.js for visualizations
+- Chart.js for visualizations
 
-yfinance (stock data)
+- yfinance (stock data)
 
-Playwright (news scraping)
+- Playwright (news scraping)
 
-Groq API with LLaMA/Mixtral models (AI processing)
+- Groq API with LLaMA/Mixtral models (AI processing)
 
-Pandas, NumPy, Matplotlib (backtesting tools)
+- Pandas, NumPy, Matplotlib (backtesting tools)
 
-AJAX (async data requests)
+- AJAX (async data requests)
 
-dotenv (secure secrets management)
+- dotenv (secure secrets management)
 
 
 ## Project Highlights
-Modular Python architecture: service-based organization (stock_service, ai_service, etc.)
+- Modular Python architecture: service-based organization (stock_service, ai_service, etc.)
 
-Prompt engineering techniques for high-quality AI analysis
+- Prompt engineering techniques for high-quality AI analysis
 
-Real-time charts & dynamic rendering
+- Real-time charts & dynamic rendering
 
-Error handling for API limits and scraping timeouts
+- Error handling for API limits and scraping timeouts
 
-Plan for future integrations: WebSocket updates, crypto/option modules
+- Plan for future integrations: WebSocket updates, crypto/option modules
 
-## Contributing
-We welcome contributions to enhance StockSense AI!
-
-Fork the repo
-
-Create a feature branch (git checkout -b feature/AmazingFeature)
-
-Commit changes (git commit -m 'Add awesome feature')
-
-Push to your branch (git push origin feature/AmazingFeature)
-
-Open a Pull Request
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
