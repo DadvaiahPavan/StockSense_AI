@@ -12,3 +12,4 @@ groq>=0.3.0
 beautifulsoup4>=4.9.0
 lxml>=4.6.0
 playwright>=1.30.0
+gunicorn
