@@ -1,28 +1,35 @@
 # StockSense - AI-Powered Stock Analysis Platform
 
-A comprehensive, real-time stock analysis platform with AI-powered insights for both Indian and US markets.
+StockSense AI — an intelligent, full-stack stock market analysis platform that simplifies investment decisions by integrating real-time data with advanced AI capabilities. Whether you're a beginner or a trader, StockSense AI helps you make informed choices through smart analysis and personalized insights.
 
-## Features
+##  Overview
 
-- 🌟 Beautiful responsive landing page
-- 🔐 Secure user authentication system
-- 📊 Real-time stock data visualization
-- 🤖 AI-powered investment insights using Groq API
-- 📈 Strategy builder with backtesting
-- 📱 User-specific dashboard with portfolio tracking
-- 🌐 Support for both US and Indian markets
-- 💬 AI chatbot for market questions and insights
+StockSense AI is a web-based AI platform that integrates real-time stock market data, sentiment analysis, and large language model intelligence (Groq + LLaMA/Mixtral) to deliver personalized analysis, backtesting tools, and a seamless user interface. It supports both Indian and US stock markets and features a modular architecture designed with Flask, Python, and SQLite.
 
-## Tech Stack
+![StockSense AI](https://i.ibb.co/7NVC0sv/Screenshot-2024-12-28-142055.png)
 
-- **Frontend**: HTML, CSS, JavaScript, Bootstrap, Chart.js
-- **Backend**: Python Flask
-- **Authentication**: Flask-Login with SQLite
-- **AI Engine**: Groq API (LLaMA or Mixtral models)
-- **Data Sources**: 
-  - yfinance for real-time stock data
-  - Playwright for web scraping (news, sentiment)
-- **Database**: SQLite
+## Live Demo
+
+
+
+
+##  Key Functional Features
+
+📊 Real-Time Stock Data: View US/India stock prices with dynamic visualizations
+
+🤖 AI Analysis: Generate personalized summaries including technicals, outlook, and risk
+
+💬 AI Chatbot: Chat-driven assistant powered by LLaMA or Mixtral for stock questions
+
+📈 Strategy Backtesting: Build and test custom strategies with historical data
+
+🔍 News Scraping & Sentiment: Scrapes financial news using Playwright and returns AI-based sentiment scores
+
+📂 Portfolio & Watchlist: Save and manage your own portfolio and tracked stocks
+
+🔐 Secure Auth: User login, password hashing, CSRF & SQL injection protection
+
+📱 Responsive UI: Built with Bootstrap, AJAX, and Chart.js for charts
 
 ## Setup Instructions
 
