@@ -1024,9 +1024,8 @@ def check_db_tables():
         print("Database initialized successfully")
         return False
 
-# Initialize database tables before the first request
-@app.before_first_request
-def initialize_database():
+# Initialize database at startup
+with app.app_context():
     check_db_tables()
 
 if __name__ == '__main__':
