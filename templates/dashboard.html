@@ -3,6 +3,15 @@
 {% block title %}Dashboard - StockSense AI{% endblock %}
 
 {% block content %}
+<!-- Add loading overlay -->
+<div id="dashboardLoadingOverlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading market data...</div>
+    <div class="loading-progress-container">
+        <div class="loading-progress"></div>
+    </div>
+</div>
+
 <div class="dashboard-container">
     <!-- Market Overview Section -->
     <section class="market-overview py-4">
@@ -82,7 +91,7 @@
                                                 <td>
                                                     <span class="{% if stock.change > 0 %}text-success{% else %}text-danger{% endif %}">
                                                         <i class="fas {% if stock.change > 0 %}fa-caret-up{% else %}fa-caret-down{% endif %}"></i>
-                                                        {{ stock.change }} ({{ stock.change_percent }}%)
+                                                        {{ stock.change }} {% if stock.change_percent is defined %}({{ stock.change_percent }}%){% endif %}
                                                     </span>
                                                 </td>
                                                 <td>
@@ -93,7 +102,7 @@
                                                         <a href="{{ url_for('stock_analysis', symbol=stock.symbol) }}" class="btn btn-sm btn-outline-info">
                                                             <i class="fas fa-brain"></i>
                                                         </a>
-                                                        <button class="btn btn-sm btn-outline-danger remove-from-watchlist" data-symbol="{{ stock.symbol }}">
+                                                        <button class="btn btn-sm btn-outline-danger remove-from-watchlist" data-symbol="{{ stock.symbol }}" type="button">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     </div>
@@ -222,7 +231,13 @@
                                                         <td>{{ stock.avg_volume if stock.avg_volume is defined else 'N/A' }}</td>
                                                         <td>{{ stock.market_cap if stock.market_cap is defined else 'N/A' }}</td>
                                                         <td>{{ stock.pe_ratio if stock.pe_ratio is defined else 'N/A' }}</td>
-                                                        <td>N/A</td>
+                                                        <td class="{% if stock.week52_change > 0 %}text-success{% elif stock.week52_change < 0 %}text-danger{% endif %}">
+                                                            {% if stock.week52_change != 'N/A' %}
+                                                                {% if stock.week52_change > 0 %}+{% endif %}{{ stock.week52_change }}%
+                                                            {% else %}
+                                                                N/A
+                                                            {% endif %}
+                                                        </td>
                                                     </tr>
                                                     {% endfor %}
                                                 {% else %}
@@ -283,7 +298,13 @@
                                                         <td>{{ stock.avg_volume if stock.avg_volume is defined else 'N/A' }}</td>
                                                         <td>{{ stock.market_cap if stock.market_cap is defined else 'N/A' }}</td>
                                                         <td>{{ stock.pe_ratio if stock.pe_ratio is defined else 'N/A' }}</td>
-                                                        <td>N/A</td>
+                                                        <td class="{% if stock.week52_change > 0 %}text-success{% elif stock.week52_change < 0 %}text-danger{% endif %}">
+                                                            {% if stock.week52_change != 'N/A' %}
+                                                                {% if stock.week52_change > 0 %}+{% endif %}{{ stock.week52_change }}%
+                                                            {% else %}
+                                                                N/A
+                                                            {% endif %}
+                                                        </td>
                                                     </tr>
                                                     {% endfor %}
                                                 {% else %}
@@ -344,7 +365,13 @@
                                                         <td>{{ stock.avg_volume if stock.avg_volume is defined else 'N/A' }}</td>
                                                         <td>{{ stock.market_cap if stock.market_cap is defined else 'N/A' }}</td>
                                                         <td>{{ stock.pe_ratio if stock.pe_ratio is defined else 'N/A' }}</td>
-                                                        <td>N/A</td>
+                                                        <td class="{% if stock.week52_change > 0 %}text-success{% elif stock.week52_change < 0 %}text-danger{% endif %}">
+                                                            {% if stock.week52_change != 'N/A' %}
+                                                                {% if stock.week52_change > 0 %}+{% endif %}{{ stock.week52_change }}%
+                                                            {% else %}
+                                                                N/A
+                                                            {% endif %}
+                                                        </td>
                                                     </tr>
                                                     {% endfor %}
                                                 {% else %}
@@ -405,7 +432,13 @@
                                                         <td>{{ stock.avg_volume if stock.avg_volume is defined else 'N/A' }}</td>
                                                         <td>{{ stock.market_cap if stock.market_cap is defined else 'N/A' }}</td>
                                                         <td>{{ stock.pe_ratio if stock.pe_ratio is defined else 'N/A' }}</td>
-                                                        <td>N/A</td>
+                                                        <td class="{% if stock.week52_change > 0 %}text-success{% elif stock.week52_change < 0 %}text-danger{% endif %}">
+                                                            {% if stock.week52_change != 'N/A' %}
+                                                                {% if stock.week52_change > 0 %}+{% endif %}{{ stock.week52_change }}%
+                                                            {% else %}
+                                                                N/A
+                                                            {% endif %}
+                                                        </td>
                                                     </tr>
                                                     {% endfor %}
                                                 {% else %}
@@ -466,7 +499,13 @@
                                                         <td>{{ stock.avg_volume if stock.avg_volume is defined else 'N/A' }}</td>
                                                         <td>{{ stock.market_cap if stock.market_cap is defined else 'N/A' }}</td>
                                                         <td>{{ stock.pe_ratio if stock.pe_ratio is defined else 'N/A' }}</td>
-                                                        <td>N/A</td>
+                                                        <td class="{% if stock.week52_change > 0 %}text-success{% elif stock.week52_change < 0 %}text-danger{% endif %}">
+                                                            {% if stock.week52_change != 'N/A' %}
+                                                                {% if stock.week52_change > 0 %}+{% endif %}{{ stock.week52_change }}%
+                                                            {% else %}
+                                                                N/A
+                                                            {% endif %}
+                                                        </td>
                                                     </tr>
                                                     {% endfor %}
                                                 {% else %}
@@ -527,7 +566,13 @@
                                                         <td>{{ stock.avg_volume if stock.avg_volume is defined else 'N/A' }}</td>
                                                         <td>{{ stock.market_cap if stock.market_cap is defined else 'N/A' }}</td>
                                                         <td>{{ stock.pe_ratio if stock.pe_ratio is defined else 'N/A' }}</td>
-                                                        <td>N/A</td>
+                                                        <td class="{% if stock.week52_change > 0 %}text-success{% elif stock.week52_change < 0 %}text-danger{% endif %}">
+                                                            {% if stock.week52_change != 'N/A' %}
+                                                                {% if stock.week52_change > 0 %}+{% endif %}{{ stock.week52_change }}%
+                                                            {% else %}
+                                                                N/A
+                                                            {% endif %}
+                                                        </td>
                                                     </tr>
                                                     {% endfor %}
                                                 {% else %}
@@ -654,126 +699,241 @@
 
 {% block extra_js %}
 <script>
+    // Show loading overlay when page loads
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize portfolio chart
-        const ctx = document.getElementById('portfolioChart').getContext('2d');
+        // Display loading overlay
+        const loadingOverlay = document.getElementById('dashboardLoadingOverlay');
+        loadingOverlay.style.display = 'flex';
         
-        // Sample data - in a real app, this would come from the backend
-        const portfolioData = {
-            labels: Array.from({length: 30}, (_, i) => {
-                const date = new Date();
-                date.setDate(date.getDate() - (30 - i));
-                return date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
-            }),
-            datasets: [{
-                label: 'Portfolio Value',
-                data: [9200, 9250, 9300, 9280, 9350, 9400, 9380, 9450, 9500, 9550, 
-                       9600, 9650, 9700, 9750, 9800, 9850, 9900, 9950, 10000, 10050, 
-                       10100, 10150, 10200, 10180, 10220, 10150, 10180, 10200, 10230, 10245],
-                borderColor: '#4e73df',
-                backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                borderWidth: 2,
-                pointRadius: 0,
-                pointHoverRadius: 5,
-                pointHoverBackgroundColor: '#4e73df',
-                pointHoverBorderColor: '#fff',
-                pointHoverBorderWidth: 2,
-                tension: 0.4,
-                fill: true
-            }]
-        };
-        
-        const portfolioChart = new Chart(ctx, {
-            type: 'line',
-            data: portfolioData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: function(context) {
-                                return `$${context.raw.toFixed(2)}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        beginAtZero: false,
-                        grid: {
-                            borderDash: [2],
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return '$' + value.toLocaleString();
-                            }
-                        }
-                    }
-                }
+        // Simulate progress
+        const progressBar = document.querySelector('.loading-progress');
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += 5;
+            progressBar.style.width = `${progress}%`;
+            
+            if (progress >= 100) {
+                clearInterval(progressInterval);
+                // Hide loading overlay after a short delay
+                setTimeout(() => {
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 500);
+                }, 500);
             }
-        });
+        }, 100);
         
-        // Time range buttons
-        const timeRangeButtons = document.querySelectorAll('.time-range-btn');
-        timeRangeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                timeRangeButtons.forEach(btn => btn.classList.remove('active'));
+        // Setup watchlist remove buttons
+        setupWatchlistRemoveButtons();
+        
+        // Setup tabs
+        const tabLinks = document.querySelectorAll('#stockTabs .nav-link');
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all tabs
+                tabLinks.forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Add active class to clicked tab
                 this.classList.add('active');
                 
-                // In a real app, this would fetch new data based on the selected range
-                const range = this.dataset.range;
-                console.log(`Fetching portfolio data for range: ${range}`);
-                
-                // For demo, we'll just update with random data
-                const dataPoints = range === '1w' ? 7 : 
-                                 range === '1m' ? 30 : 
-                                 range === '3m' ? 90 : 
-                                 range === '1y' ? 365 : 
-                                 730; // 'all'
-                
-                const newLabels = Array.from({length: dataPoints}, (_, i) => {
-                    const date = new Date();
-                    date.setDate(date.getDate() - (dataPoints - i));
-                    return date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+                // Show corresponding tab content
+                const tabId = this.getAttribute('href').substring(1);
+                const tabContents = document.querySelectorAll('#stockTabsContent .tab-pane');
+                tabContents.forEach(content => {
+                    content.classList.remove('show', 'active');
                 });
-                
-                // Generate some random data that trends upward
-                let value = 9000;
-                const newData = Array.from({length: dataPoints}, () => {
-                    value += Math.random() * 50 - 20;
-                    return value;
-                });
-                
-                portfolioChart.data.labels = newLabels;
-                portfolioChart.data.datasets[0].data = newData;
-                portfolioChart.update();
+                document.getElementById(tabId).classList.add('show', 'active');
             });
         });
         
-        // Stock search functionality
-        const stockSearchLink = document.getElementById('stockSearchLink');
-        const stockSearchInput = document.getElementById('stockSearchInput');
-        const stockSearchResults = document.getElementById('stockSearchResults');
-        
-        stockSearchLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            const modal = new bootstrap.Modal(document.getElementById('stockSearchModal'));
-            modal.show();
+        // Initialize all tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
+    });
+    
+    // Stock search functionality
+    const stockSearchLink = document.getElementById('stockSearchLink');
+    const stockSearchInput = document.getElementById('stockSearchInput');
+    const stockSearchResults = document.getElementById('stockSearchResults');
+    
+    stockSearchLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        const modal = new bootstrap.Modal(document.getElementById('stockSearchModal'));
+        modal.show();
+    });
+    
+    stockSearchInput.addEventListener('input', function() {
+        const query = this.value.trim();
         
-        stockSearchInput.addEventListener('input', function() {
+        if (query.length < 2) {
+            stockSearchResults.innerHTML = '';
+            return;
+        }
+        
+        // Fetch stock search results
+        fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                stockSearchResults.innerHTML = '';
+                
+                data.forEach(stock => {
+                    const item = document.createElement('a');
+                    item.href = '#';
+                    item.className = 'list-group-item list-group-item-action';
+                    item.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${stock.symbol}</strong>
+                                <div class="text-muted small">${stock.name}</div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary add-to-watchlist" 
+                                    data-symbol="${stock.symbol}" 
+                                    data-name="${stock.name}">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    stockSearchResults.appendChild(item);
+                });
+                
+                // Add event listeners to the "Add to Watchlist" buttons
+                document.querySelectorAll('.add-to-watchlist').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const symbol = this.dataset.symbol;
+                        const name = this.dataset.name;
+                        
+                        // Add to watchlist via API
+                        fetch('/api/watchlist/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                symbol: symbol,
+                                name: name
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Close modal and refresh page
+                                const modal = bootstrap.Modal.getInstance(document.getElementById('stockSearchModal'));
+                                modal.hide();
+                                window.location.reload();
+                            }
+                        });
+                    });
+                });
+            });
+    });
+    
+    // Function to setup watchlist remove buttons
+    function setupWatchlistRemoveButtons() {
+        document.querySelectorAll('.remove-from-watchlist').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const symbol = this.dataset.symbol;
+                const stockRow = this.closest('tr');
+                
+                if (confirm(`Remove ${symbol} from your watchlist?`)) {
+                    // Show loading state
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    this.disabled = true;
+                    
+                    // Remove from watchlist via API
+                    fetch('/api/watchlist/remove', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            symbol: symbol
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Remove the row from the table with animation
+                            stockRow.style.transition = 'opacity 0.5s ease';
+                            stockRow.style.opacity = '0';
+                            setTimeout(() => {
+                                stockRow.remove();
+                                
+                                // Check if watchlist is empty and show empty state if needed
+                                const watchlistTable = document.querySelector('table tbody');
+                                if (watchlistTable && watchlistTable.querySelectorAll('tr').length === 0) {
+                                    const emptyRow = document.createElement('tr');
+                                    emptyRow.innerHTML = `
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="empty-state">
+                                                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                                <h5>Your watchlist is empty</h5>
+                                                <p class="text-muted">Add stocks to your watchlist to track them here</p>
+                                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#stockSearchModal">
+                                                    <i class="fas fa-plus me-1"></i> Add Stock
+                                                </button>
+                                            </div>
+                                        </td>
+                                    `;
+                                    watchlistTable.appendChild(emptyRow);
+                                }
+                            }, 500);
+                        } else {
+                            // Reset button state
+                            this.innerHTML = '<i class="fas fa-trash"></i>';
+                            this.disabled = false;
+                            
+                            // Show error message
+                            alert(`Error removing ${symbol}: ${data.error || 'Unknown error'}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        
+                        // Reset button state
+                        this.innerHTML = '<i class="fas fa-trash"></i>';
+                        this.disabled = false;
+                        
+                        // Show error message
+                        alert(`Error removing ${symbol} from watchlist. Please try again.`);
+                    });
+                }
+            });
+        });
+    }
+    
+    // Stock analysis link functionality
+    const stockAnalysisLink = document.getElementById('stockAnalysisLink');
+    stockAnalysisLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        const modal = new bootstrap.Modal(document.getElementById('stockSearchModal'));
+        modal.show();
+        
+        // Update modal title
+        document.querySelector('#stockSearchModal .modal-title').textContent = 'Select Stock for Analysis';
+        
+        // Update event listeners for search results
+        const originalSearchHandler = stockSearchInput.oninput;
+        stockSearchInput.oninput = function() {
             const query = this.value.trim();
             
             if (query.length < 2) {
@@ -789,7 +949,7 @@
                     
                     data.forEach(stock => {
                         const item = document.createElement('a');
-                        item.href = '#';
+                        item.href = `/stock-analysis/${stock.symbol}`;
                         item.className = 'list-group-item list-group-item-action';
                         item.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center">
@@ -797,180 +957,72 @@
                                     <strong>${stock.symbol}</strong>
                                     <div class="text-muted small">${stock.name}</div>
                                 </div>
-                                <button class="btn btn-sm btn-outline-primary add-to-watchlist" 
-                                        data-symbol="${stock.symbol}" 
-                                        data-name="${stock.name}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                                <i class="fas fa-chevron-right"></i>
                             </div>
                         `;
                         
                         stockSearchResults.appendChild(item);
                     });
+                });
+        };
+        
+        // Restore original handler when modal is closed
+        document.getElementById('stockSearchModal').addEventListener('hidden.bs.modal', function() {
+            document.querySelector('#stockSearchModal .modal-title').textContent = 'Search Stocks';
+            stockSearchInput.oninput = originalSearchHandler;
+        }, { once: true });
+    });
+    
+    // Investment thesis link functionality
+    const thesisLink = document.getElementById('thesisLink');
+    thesisLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        const modal = new bootstrap.Modal(document.getElementById('stockSearchModal'));
+        modal.show();
+        
+        // Update modal title
+        document.querySelector('#stockSearchModal .modal-title').textContent = 'Select Stock for Stock Predictor';
+        
+        // Update event listeners for search results
+        const originalSearchHandler = stockSearchInput.oninput;
+        stockSearchInput.oninput = function() {
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                stockSearchResults.innerHTML = '';
+                return;
+            }
+            
+            // Fetch stock search results
+            fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    stockSearchResults.innerHTML = '';
                     
-                    // Add event listeners to the "Add to Watchlist" buttons
-                    document.querySelectorAll('.add-to-watchlist').forEach(button => {
-                        button.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            
-                            const symbol = this.dataset.symbol;
-                            const name = this.dataset.name;
-                            
-                            // Add to watchlist via API
-                            fetch('/api/watchlist/add', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    symbol: symbol,
-                                    name: name
-                                })
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    // Close modal and refresh page
-                                    const modal = bootstrap.Modal.getInstance(document.getElementById('stockSearchModal'));
-                                    modal.hide();
-                                    window.location.reload();
-                                }
-                            });
-                        });
+                    data.forEach(stock => {
+                        const item = document.createElement('a');
+                        item.href = `/stock-predictor?symbol=${stock.symbol}`;
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${stock.symbol}</strong>
+                                    <div class="text-muted small">${stock.name}</div>
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        `;
+                        
+                        stockSearchResults.appendChild(item);
                     });
                 });
-        });
+        };
         
-        // Remove from watchlist functionality
-        document.querySelectorAll('.remove-from-watchlist').forEach(button => {
-            button.addEventListener('click', function() {
-                const symbol = this.dataset.symbol;
-                
-                if (confirm(`Remove ${symbol} from your watchlist?`)) {
-                    // Remove from watchlist via API
-                    fetch('/api/watchlist/remove', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            symbol: symbol
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            window.location.reload();
-                        }
-                    });
-                }
-            });
-        });
-        
-        // Stock analysis link functionality
-        const stockAnalysisLink = document.getElementById('stockAnalysisLink');
-        stockAnalysisLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            const modal = new bootstrap.Modal(document.getElementById('stockSearchModal'));
-            modal.show();
-            
-            // Update modal title
-            document.querySelector('#stockSearchModal .modal-title').textContent = 'Select Stock for Analysis';
-            
-            // Update event listeners for search results
-            const originalSearchHandler = stockSearchInput.oninput;
-            stockSearchInput.oninput = function() {
-                const query = this.value.trim();
-                
-                if (query.length < 2) {
-                    stockSearchResults.innerHTML = '';
-                    return;
-                }
-                
-                // Fetch stock search results
-                fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        stockSearchResults.innerHTML = '';
-                        
-                        data.forEach(stock => {
-                            const item = document.createElement('a');
-                            item.href = `/stock-analysis/${stock.symbol}`;
-                            item.className = 'list-group-item list-group-item-action';
-                            item.innerHTML = `
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${stock.symbol}</strong>
-                                        <div class="text-muted small">${stock.name}</div>
-                                    </div>
-                                    <i class="fas fa-chevron-right"></i>
-                                </div>
-                            `;
-                            
-                            stockSearchResults.appendChild(item);
-                        });
-                    });
-            };
-            
-            // Restore original handler when modal is closed
-            document.getElementById('stockSearchModal').addEventListener('hidden.bs.modal', function() {
-                document.querySelector('#stockSearchModal .modal-title').textContent = 'Search Stocks';
-                stockSearchInput.oninput = originalSearchHandler;
-            }, { once: true });
-        });
-        
-        // Investment thesis link functionality
-        const thesisLink = document.getElementById('thesisLink');
-        thesisLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            const modal = new bootstrap.Modal(document.getElementById('stockSearchModal'));
-            modal.show();
-            
-            // Update modal title
-            document.querySelector('#stockSearchModal .modal-title').textContent = 'Select Stock for Investment Thesis';
-            
-            // Update event listeners for search results
-            const originalSearchHandler = stockSearchInput.oninput;
-            stockSearchInput.oninput = function() {
-                const query = this.value.trim();
-                
-                if (query.length < 2) {
-                    stockSearchResults.innerHTML = '';
-                    return;
-                }
-                
-                // Fetch stock search results
-                fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        stockSearchResults.innerHTML = '';
-                        
-                        data.forEach(stock => {
-                            const item = document.createElement('a');
-                            item.href = `/investment-thesis/${stock.symbol}`;
-                            item.className = 'list-group-item list-group-item-action';
-                            item.innerHTML = `
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${stock.symbol}</strong>
-                                        <div class="text-muted small">${stock.name}</div>
-                                    </div>
-                                    <i class="fas fa-chevron-right"></i>
-                                </div>
-                            `;
-                            
-                            stockSearchResults.appendChild(item);
-                        });
-                    });
-            };
-            
-            // Restore original handler when modal is closed
-            document.getElementById('stockSearchModal').addEventListener('hidden.bs.modal', function() {
-                document.querySelector('#stockSearchModal .modal-title').textContent = 'Search Stocks';
-                stockSearchInput.oninput = originalSearchHandler;
-            }, { once: true });
-        });
+        // Restore original handler when modal is closed
+        document.getElementById('stockSearchModal').addEventListener('hidden.bs.modal', function() {
+            document.querySelector('#stockSearchModal .modal-title').textContent = 'Search Stocks';
+            stockSearchInput.oninput = originalSearchHandler;
+        }, { once: true });
     });
 </script>
 {% endblock %}

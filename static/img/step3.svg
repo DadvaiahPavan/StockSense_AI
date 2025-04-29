@@ -13,12 +13,12 @@
   <!-- Background -->
   <rect width="400" height="300" rx="10" fill="url(#bgGradient)" filter="url(#shadow)" />
   
-  <!-- Investment Thesis Card -->
+  <!-- Stock Predictor Card -->
   <g transform="translate(50, 70)">
     <rect width="300" height="180" rx="8" fill="#1A1F2E" />
     
     <!-- Card Header -->
-    <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">Investment Thesis: AAPL</text>
+    <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">Stock Predictor: AAPL</text>
     
     <!-- AI Generated Content -->
     <g transform="translate(20, 50)">
@@ -57,5 +57,5 @@
   </g>
   
   <!-- Title -->
-  <text x="200" y="40" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Make Informed Decisions</text>
+  <text x="200" y="40" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Stock Predictor</text>
 </svg>

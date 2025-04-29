@@ -31,11 +31,11 @@ def get_stock_data(symbol, period='1y', interval='1d'):
             return {'error': f'Incomplete data for {symbol}. Missing required price data.'}
         
         # Clean the data - fill NaN values with previous values
-        hist = hist.fillna(method='ffill')
+        hist = hist.ffill()
         
         # Format data for charts
         dates = hist.index.strftime('%Y-%m-%d').tolist()
-        prices = hist['Close'].fillna(method='ffill').tolist()
+        prices = hist['Close'].ffill().tolist()
         volumes = hist['Volume'].fillna(0).astype(int).tolist()
         
         # Calculate moving averages only if we have enough data points
@@ -496,9 +496,7 @@ def get_yahoo_market_stocks(category='most-active'):
     try:
         import requests
         from bs4 import BeautifulSoup
-        import re
-        import json
-        import time
+        import pandas as pd
         
         # Map of categories to their Yahoo Finance URLs
         category_urls = {
@@ -506,8 +504,8 @@ def get_yahoo_market_stocks(category='most-active'):
             'trending': 'https://finance.yahoo.com/trending-tickers',
             'gainers': 'https://finance.yahoo.com/gainers',
             'losers': 'https://finance.yahoo.com/losers',
-            '52-week-gainers': 'https://finance.yahoo.com/screener/predefined/strong_year_to_date_performers',
-            '52-week-losers': 'https://finance.yahoo.com/screener/predefined/weak_year_to_date_performers'
+            "52 Week Gainers": "https://finance.yahoo.com/markets/stocks/52-week-gainers/",
+            "52 Week Losers": "https://finance.yahoo.com/markets/stocks/52-week-losers/"
         }
         
         if category not in category_urls:
@@ -523,219 +521,51 @@ def get_yahoo_market_stocks(category='most-active'):
             'Cache-Control': 'max-age=0'
         }
         
-        # Add a timestamp to avoid caching
-        timestamp = int(time.time())
-        url_with_timestamp = f"{url}?ts={timestamp}"
-        
-        response = requests.get(url_with_timestamp, headers=headers)
+        response = requests.get(url, headers=headers)
         if response.status_code != 200:
             return {'error': f'Failed to fetch data: HTTP {response.status_code}'}
         
-        # Try to extract data from the page
         soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Method 1: Try to find the table directly
         table = soup.find('table')
-        if not table:
-            # Method 2: Look for the data in a script tag (Yahoo often stores data in JavaScript)
-            script_data = None
-            for script in soup.find_all('script'):
-                if script.string and 'root.App.main' in script.string:
-                    script_text = script.string
-                    start_idx = script_text.find('root.App.main') + 16
-                    # Find the JSON data
-                    brace_count = 0
-                    for i in range(start_idx, len(script_text)):
-                        if script_text[i] == '{':
-                            if brace_count == 0:
-                                start_idx = i
-                            brace_count += 1
-                        elif script_text[i] == '}':
-                            brace_count -= 1
-                            if brace_count == 0:
-                                end_idx = i + 1
-                                script_data = script_text[start_idx:end_idx]
-                                break
-                    break
-            
-            if not script_data:
-                return {'error': 'Could not find stock data on the page'}
-            
-            try:
-                # Parse the JSON data
-                data = json.loads(script_data)
-                
-                # Extract the stock data from the JSON
-                stocks_data = []
-                
-                # Navigate through the JSON structure to find the stock data
-                # The exact path depends on Yahoo's structure, which can change
-                if 'context' in data and 'dispatcher' in data:
-                    stores = data.get('context', {}).get('dispatcher', {}).get('stores', {})
-                    
-                    # Try different paths where the stock data might be located
-                    possible_paths = [
-                        ['ScreenerResultsStore', 'results', 'rows'],
-                        ['ScreenerCriteriaStore', 'results', 'rows'],
-                        ['StreamDataStore', 'quoteData'],
-                        ['QuoteSummaryStore', 'topGainers', 'rows'],
-                        ['QuoteSummaryStore', 'topLosers', 'rows'],
-                        ['QuoteSummaryStore', 'mostActives', 'rows']
-                    ]
-                    
-                    stock_rows = None
-                    for path in possible_paths:
-                        current = stores
-                        valid_path = True
-                        for key in path:
-                            if key in current:
-                                current = current[key]
-                            else:
-                                valid_path = False
-                                break
-                        if valid_path and current:
-                            stock_rows = current
-                            break
-                    
-                    if stock_rows:
-                        # Process the stock data
-                        for item in stock_rows:
-                            stock = {}
-                            
-                            # Extract data based on the structure
-                            if isinstance(item, dict):
-                                if 'symbol' in item:
-                                    stock['symbol'] = item['symbol']
-                                elif 'Symbol' in item:
-                                    stock['symbol'] = item['Symbol']
-                                
-                                # Try different field names that might contain the company name
-                                for name_field in ['shortName', 'longName', 'name', 'companyName', 'Company']:
-                                    if name_field in item:
-                                        stock['name'] = item[name_field]
-                                        break
-                                
-                                # Extract price and other metrics
-                                price_fields = ['regularMarketPrice', 'price', 'Price', 'lastPrice']
-                                for field in price_fields:
-                                    if field in item:
-                                        if isinstance(item[field], dict) and 'raw' in item[field]:
-                                            stock['price'] = item[field]['raw']
-                                        else:
-                                            stock['price'] = item[field]
-                                        break
-                                
-                                # Extract change
-                                change_fields = ['regularMarketChange', 'change', 'Change']
-                                for field in change_fields:
-                                    if field in item:
-                                        if isinstance(item[field], dict) and 'raw' in item[field]:
-                                            stock['change'] = item[field]['raw']
-                                        else:
-                                            stock['change'] = item[field]
-                                        break
-                                
-                                # Extract change percent
-                                pct_fields = ['regularMarketChangePercent', 'changePercent', 'ChangePct']
-                                for field in pct_fields:
-                                    if field in item:
-                                        if isinstance(item[field], dict) and 'raw' in item[field]:
-                                            stock['change_percent'] = item[field]['raw']
-                                        else:
-                                            stock['change_percent'] = item[field]
-                                        break
-                                
-                                # Extract volume
-                                vol_fields = ['regularMarketVolume', 'volume', 'Volume']
-                                for field in vol_fields:
-                                    if field in item:
-                                        if isinstance(item[field], dict) and 'raw' in item[field]:
-                                            stock['volume'] = item[field]['raw']
-                                        else:
-                                            stock['volume'] = item[field]
-                                        break
-                                
-                                # Extract average volume
-                                avg_vol_fields = ['averageDailyVolume3Month', 'avgVol', 'AvgVol']
-                                for field in avg_vol_fields:
-                                    if field in item:
-                                        if isinstance(item[field], dict) and 'raw' in item[field]:
-                                            stock['avg_volume'] = item[field]['raw']
-                                        else:
-                                            stock['avg_volume'] = item[field]
-                                        break
-                                
-                                # Extract market cap
-                                mcap_fields = ['marketCap', 'MarketCap']
-                                for field in mcap_fields:
-                                    if field in item:
-                                        if isinstance(item[field], dict) and 'raw' in item[field]:
-                                            stock['market_cap'] = item[field]['raw']
-                                        else:
-                                            stock['market_cap'] = item[field]
-                                        break
-                                
-                                # Extract PE ratio
-                                pe_fields = ['trailingPE', 'PE', 'peRatio']
-                                for field in pe_fields:
-                                    if field in item:
-                                        if isinstance(item[field], dict) and 'raw' in item[field]:
-                                            stock['pe_ratio'] = item[field]['raw']
-                                        else:
-                                            stock['pe_ratio'] = item[field]
-                                        break
-                                
-                                # Extract 52-week change
-                                week52_fields = ['52WeekChange', 'fiftyTwoWeekHighChangePercent']
-                                for field in week52_fields:
-                                    if field in item:
-                                        if isinstance(item[field], dict) and 'raw' in item[field]:
-                                            stock['week52_change'] = item[field]['raw']
-                                        else:
-                                            stock['week52_change'] = item[field]
-                                        break
-                            
-                            # Only add stocks with at least symbol and price
-                            if 'symbol' in stock and 'price' in stock:
-                                stocks_data.append(stock)
-                        
-                        return stocks_data
-            except Exception as json_error:
-                print(f"Error parsing JSON data: {json_error}")
-                return {'error': f'Error parsing JSON data: {json_error}'}
         
-        # If we found a table, extract data from it
-        if table:
-            stocks_data = []
-            rows = table.find('tbody').find_all('tr') if table.find('tbody') else table.find_all('tr')[1:]
-            
-            for row in rows:
+        if not table:
+            return {'error': 'No table found on page'}
+        
+        headers_list = []
+        for th in table.find_all('th'):
+            headers_list.append(th.text.strip())
+        
+        stocks_data = []
+        tbody = table.find('tbody')
+        if tbody:
+            for tr in tbody.find_all('tr'):
                 stock = {}
-                cells = row.find_all('td')
+                cells = tr.find_all('td')
                 
-                if len(cells) < 5:  # Need at least symbol, name, price, change, change%
+                # Process only rows with adequate data
+                if len(cells) < 5:
                     continue
                 
-                # Extract symbol
+                # Symbol - check for link first
                 symbol_cell = cells[0].find('a')
                 if symbol_cell:
                     stock['symbol'] = symbol_cell.text.strip()
                 else:
-                    continue  # Skip if no symbol
+                    continue  # Skip if no symbol found
                 
-                # Extract name
+                # Name
                 if len(cells) > 1:
                     stock['name'] = cells[1].text.strip()
                 
-                # Extract price
+                # Price
                 if len(cells) > 2:
                     price_text = cells[2].text.strip().replace('$', '').replace(',', '')
                     try:
                         stock['price'] = float(price_text)
                     except ValueError:
-                        stock['price'] = price_text
+                        stock['price'] = 0.0
                 
-                # Extract change
+                # Change
                 if len(cells) > 3:
                     change_text = cells[3].text.strip().replace('+', '').replace('$', '').replace(',', '')
                     try:
@@ -743,7 +573,7 @@ def get_yahoo_market_stocks(category='most-active'):
                     except ValueError:
                         stock['change'] = 0.0
                 
-                # Extract change percent
+                # Change Percent
                 if len(cells) > 4:
                     change_pct_text = cells[4].text.strip().replace('%', '').replace('+', '').replace('(', '').replace(')', '')
                     try:
@@ -751,7 +581,7 @@ def get_yahoo_market_stocks(category='most-active'):
                     except ValueError:
                         stock['change_percent'] = 0.0
                 
-                # Extract volume
+                # Volume
                 if len(cells) > 5:
                     volume_text = cells[5].text.strip().replace(',', '')
                     try:
@@ -759,7 +589,7 @@ def get_yahoo_market_stocks(category='most-active'):
                     except ValueError:
                         stock['volume'] = 0
                 
-                # Extract avg volume if available
+                # Avg Volume
                 if len(cells) > 6:
                     avg_vol_text = cells[6].text.strip().replace(',', '')
                     try:
@@ -767,32 +597,30 @@ def get_yahoo_market_stocks(category='most-active'):
                     except ValueError:
                         stock['avg_volume'] = 0
                 
-                # Extract market cap if available
+                # Market Cap
                 if len(cells) > 7:
                     stock['market_cap'] = cells[7].text.strip()
                 
-                # Extract PE ratio if available
+                # PE Ratio
                 if len(cells) > 8:
                     pe_text = cells[8].text.strip()
                     try:
                         stock['pe_ratio'] = float(pe_text)
                     except ValueError:
-                        stock['pe_ratio'] = pe_text
+                        stock['pe_ratio'] = 'N/A'
                 
-                # Extract 52-week change if available
+                # 52-Week Change
                 if len(cells) > 9:
                     week52_text = cells[9].text.strip().replace('%', '')
                     try:
                         stock['week52_change'] = float(week52_text)
                     except ValueError:
-                        stock['week52_change'] = week52_text
+                        stock['week52_change'] = 'N/A'
                 
+                # Add to results
                 stocks_data.append(stock)
-            
-            return stocks_data
         
-        # If we couldn't extract data using either method
-        return {'error': 'Could not extract stock data from the page'}
+        return stocks_data
     
     except Exception as e:
         print(f"Error fetching {category} stocks: {e}")

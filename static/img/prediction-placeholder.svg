@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <style>
+    .bg { fill: #f8f9fa; }
+    .primary { fill: #4e73df; }
+    .secondary { fill: #858796; }
+    .success { fill: #1cc88a; }
+    .danger { fill: #e74a3b; }
+    .line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .line-primary { stroke: #4e73df; }
+    .line-success { stroke: #1cc88a; }
+    .line-danger { stroke: #e74a3b; }
+    .text { font-family: Arial, sans-serif; fill: #5a5c69; }
+    .text-sm { font-size: 10px; }
+    .text-md { font-size: 12px; }
+    .grid-line { stroke: #e3e6f0; stroke-width: 1; }
+  </style>
+  
+  <!-- Background -->
+  <rect class="bg" x="0" y="0" width="400" height="200" rx="10" ry="10" />
+  
+  <!-- Grid Lines -->
+  <g>
+    <line class="grid-line" x1="50" y1="40" x2="50" y2="160" />
+    <line class="grid-line" x1="100" y1="40" x2="100" y2="160" />
+    <line class="grid-line" x1="150" y1="40" x2="150" y2="160" />
+    <line class="grid-line" x1="200" y1="40" x2="200" y2="160" />
+    <line class="grid-line" x1="250" y1="40" x2="250" y2="160" />
+    <line class="grid-line" x1="300" y1="40" x2="300" y2="160" />
+    <line class="grid-line" x1="350" y1="40" x2="350" y2="160" />
+    
+    <line class="grid-line" x1="50" y1="40" x2="350" y2="40" />
+    <line class="grid-line" x1="50" y1="70" x2="350" y2="70" />
+    <line class="grid-line" x1="50" y1="100" x2="350" y2="100" />
+    <line class="grid-line" x1="50" y1="130" x2="350" y2="130" />
+    <line class="grid-line" x1="50" y1="160" x2="350" y2="160" />
+  </g>
+  
+  <!-- Chart Lines -->
+  <g>
+    <!-- Up Trend -->
+    <path class="line line-success" d="M50,130 L100,120 L150,125 L200,110 L250,100 L300,70 L350,60" />
+    
+    <!-- Down Trend -->
+    <path class="line line-danger" d="M50,70 L100,80 L150,85 L200,100 L250,110 L300,140 L350,150" />
+    
+    <!-- Neutral Line -->
+    <path class="line line-primary" d="M50,100 L100,110 L150,90 L200,105 L250,95 L300,100 L350,95" />
+  </g>
+  
+  <!-- Icons -->
+  <g>
+    <!-- Up Arrow -->
+    <circle class="bg" cx="300" cy="70" r="10" />
+    <path class="success" d="M300,65 L305,75 L295,75 Z" />
+    
+    <!-- Down Arrow -->
+    <circle class="bg" cx="300" cy="140" r="10" />
+    <path class="danger" d="M300,145 L305,135 L295,135 Z" />
+  </g>
+  
+  <!-- Labels -->
+  <g class="text text-md">
+    <text x="50" y="30" text-anchor="middle">Jan</text>
+    <text x="100" y="30" text-anchor="middle">Feb</text>
+    <text x="150" y="30" text-anchor="middle">Mar</text>
+    <text x="200" y="30" text-anchor="middle">Apr</text>
+    <text x="250" y="30" text-anchor="middle">May</text>
+    <text x="300" y="30" text-anchor="middle">Jun</text>
+    <text x="350" y="30" text-anchor="middle">Jul</text>
+  </g>
+  
+  <!-- Y-axis Labels -->
+  <g class="text text-sm">
+    <text x="40" y="45" text-anchor="end">$200</text>
+    <text x="40" y="75" text-anchor="end">$180</text>
+    <text x="40" y="105" text-anchor="end">$160</text>
+    <text x="40" y="135" text-anchor="end">$140</text>
+    <text x="40" y="165" text-anchor="end">$120</text>
+  </g>
+  
+  <!-- Legend -->
+  <g transform="translate(120, 180)">
+    <line class="line line-success" x1="0" y1="0" x2="20" y2="0" />
+    <text class="text text-md" x="25" y="4">Bullish</text>
+    
+    <line class="line line-danger" x1="80" y1="0" x2="100" y2="0" />
+    <text class="text text-md" x="105" y="4">Bearish</text>
+    
+    <line class="line line-primary" x1="160" y1="0" x2="180" y2="0" />
+    <text class="text text-md" x="185" y="4">Neutral</text>
+  </g>
+</svg> 

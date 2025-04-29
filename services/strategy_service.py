@@ -125,24 +125,48 @@ def backtest_strategy(symbol, strategy_type, parameters, start_date, end_date):
         Dictionary with backtest results
     """
     try:
-        # Get historical data
-        try:
-            # First try with the symbol as provided
-            ticker = yf.Ticker(symbol)
-            data = ticker.history(start=start_date, end=end_date)
+        # Validate symbol
+        if not symbol or len(symbol.strip()) == 0:
+            return {'error': 'Invalid stock symbol'}
             
-            # If data is empty and it's not a .NS symbol, try adding .NS for Indian stocks
-            if data.empty and not symbol.endswith('.NS'):
-                indian_ticker = yf.Ticker(f"{symbol}.NS")
-                indian_data = indian_ticker.history(start=start_date, end=end_date)
-                if not indian_data.empty:
-                    data = indian_data
-        except Exception as e:
-            print(f"Error fetching data for {symbol}: {e}")
-            data = pd.DataFrame()
+        # Clean the symbol
+        symbol = symbol.strip().upper()
+        
+        # Get historical data
+        data = pd.DataFrame()
+        error_message = None
+        
+        # Try different symbol formats
+        symbol_variations = [symbol]
+        
+        # For non-suffixed symbols, try with common suffixes
+        if not any(symbol.endswith(suffix) for suffix in ['.NS', '.BO', '.BSE', '.N', '.O']):
+            symbol_variations.extend([f"{symbol}.NS", f"{symbol}.BO"])
+        
+        # For suffixed symbols, also try the base symbol
+        elif any(symbol.endswith(suffix) for suffix in ['.NS', '.BO', '.BSE', '.N', '.O']):
+            base_symbol = symbol.split('.')[0]
+            if base_symbol not in symbol_variations:
+                symbol_variations.append(base_symbol)
+        
+        # Try each symbol variation
+        for sym in symbol_variations:
+            try:
+                print(f"Trying symbol: {sym}")
+                ticker = yf.Ticker(sym)
+                temp_data = ticker.history(start=start_date, end=end_date)
+                
+                if not temp_data.empty:
+                    data = temp_data
+                    symbol = sym  # Update to the working symbol
+                    print(f"Successfully fetched data for {symbol}")
+                    break
+            except Exception as e:
+                error_message = str(e)
+                print(f"Error fetching data for {sym}: {e}")
         
         if data.empty:
-            return {'error': 'No data available for this symbol and date range'}
+            return {'error': f'No data available for this symbol ({symbol}) and date range. {error_message if error_message else ""}'}
         
         # Initialize signals DataFrame
         signals = pd.DataFrame(index=data.index)

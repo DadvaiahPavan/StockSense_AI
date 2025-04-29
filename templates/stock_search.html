@@ -3,6 +3,29 @@
 {% block title %}Stock Search - StockSense AI{% endblock %}
 
 {% block content %}
+<!-- Stock Search Loading Animation Overlay -->
+<div id="stockLoadingOverlay" class="stock-loading-overlay" style="display: none;">
+    <div class="stock-loading-container">
+        <div class="stock-loading-logo">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stock-loading-graph">
+            <div class="stock-bar"></div>
+            <div class="stock-bar"></div>
+            <div class="stock-bar"></div>
+            <div class="stock-bar"></div>
+            <div class="stock-bar"></div>
+            <div class="stock-bar"></div>
+            <div class="stock-bar"></div>
+            <div class="stock-bar"></div>
+            <div class="stock-bar"></div>
+            <div class="stock-bar"></div>
+        </div>
+        <div class="stock-loading-text">Loading Stock Data...</div>
+        <div class="stock-loading-progress"></div>
+    </div>
+</div>
+
 <div class="container py-5">
     <!-- Hero Section -->
     <div class="row mb-5" data-aos="fade-up">
@@ -46,21 +69,6 @@
                         </div>
                         
                         <div id="searchSuggestions" class="list-group rounded-md shadow-sm mb-4 position-absolute w-100 z-index-dropdown"></div>
-                    </div>
-                    
-                    <!-- Loading Animation -->
-                    <div id="loadingAnimation" class="text-center py-5 d-none">
-                        <div class="loader-modern">
-                            <div></div>
-                            <div></div>
-                            <div></div>
-                            <div></div>
-                        </div>
-                        <h4 class="mt-4 text-primary fw-bold">Fetching Stock Data</h4>
-                        <p class="text-muted">Retrieving real-time information from markets</p>
-                        <div class="progress mt-3" style="height: 6px;">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 100%"></div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -179,9 +187,6 @@
                                     </button>
                                     <a href="#" class="btn btn-modern-secondary btn-lg" id="analysisLink">
                                         <i class="fas fa-brain me-2"></i> AI Analysis
-                                    </a>
-                                    <a href="#" class="btn btn-modern-accent btn-lg" id="thesisLink">
-                                        <i class="fas fa-file-alt me-2"></i> Investment Thesis
                                     </a>
                                 </div>
                             </div>
@@ -636,624 +641,534 @@
         const searchButton = document.getElementById('stockSearchButton');
         const searchSuggestions = document.getElementById('searchSuggestions');
         const stockResultsContainer = document.getElementById('stockResultsContainer');
+        const stockLoadingOverlay = document.getElementById('stockLoadingOverlay');
         const addToWatchlistBtn = document.getElementById('addToWatchlistBtn');
-        const stockExamples = document.querySelectorAll('.stock-example');
+        const chartContainer = document.getElementById('stockChart');
         
-        let priceChart = null;
-        let maChart = null;
-        let volumeChart = null;
+        // Stock chart related elements
+        const chartLoading = document.getElementById('chartLoading');
+        const chartError = document.getElementById('chartError');
+        const retryChartBtn = document.getElementById('retryChartBtn');
+        
+        // Default chart configuration
+        let stockChart = null;
         let currentSymbol = '';
-        let currentTimeRange = '1y';
+        let currentPeriod = '1mo';
+        let chartType = 'line';
         
-        // Function to perform stock search
-        function performSearch() {
-            const query = searchInput.value.trim();
-            
-            if (query.length < 1) {
-                showToast('Please enter a stock symbol or company name', 'warning');
-                return;
-            }
-            
-            // Show loading animation
-            const loadingAnimation = document.getElementById('loadingAnimation');
-            loadingAnimation.classList.remove('d-none');
-            searchSuggestions.innerHTML = '';
-            stockResultsContainer.classList.add('d-none');
-            
-            // Add pulse effect to search button
-            searchButton.classList.add('btn-pulse');
-            
-            // Check if the input contains a stock symbol (extract it from the format "AAPL - Apple Inc.")
-            const symbolMatch = query.match(/^([\w\.]+)(?:\s*-.*)?$/);
-            if (symbolMatch) {
-                let symbol = symbolMatch[1];
-                
-                // Check if this might be an Indian stock without the .NS suffix
-                if (!symbol.includes('.') && symbol.length >= 2 && !symbol.includes(' ')) {
-                    // Common Indian stock symbols that need .NS suffix
-                    const commonIndianStocks = [
-                        'TCS', 'RELIANCE', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'WIPRO', 'HINDUNILVR',
-                        'TATAMOTORS', 'BAJFINANCE', 'AXISBANK', 'MARUTI', 'HCLTECH', 'SUNPHARMA', 'ASIANPAINT',
-                        'ONGC', 'TITAN', 'BAJAJFINSV', 'ADANIENT', 'TATASTEEL', 'NTPC', 'POWERGRID', 'TVSMOTOR',
-                        'TECHM', 'ULTRACEMCO', 'NESTLEIND', 'DRREDDY'
-                    ];
-                    
-                    // Check for exact matches first
-                    if (commonIndianStocks.includes(symbol.toUpperCase())) {
-                        symbol = symbol.toUpperCase() + '.NS';
-                        console.log('Detected Indian stock, using:', symbol);
-                    }
-                    // Check for partial matches (like ICIC should match ICICIBANK)
-                    else {
-                        const partialMatch = commonIndianStocks.find(stock => 
-                            stock.startsWith(symbol.toUpperCase()) && 
-                            symbol.toUpperCase().length >= 3);
-                        
-                        if (partialMatch) {
-                            symbol = partialMatch + '.NS';
-                            console.log('Detected partial match for Indian stock, using:', symbol);
-                            // Show a toast to inform the user
-                            showToast(`Using ${symbol} based on your search`, 'info');
-                        }
-                    }
-                }
-                
-                loadStockData(symbol);
-                return;
-            }
-            
-            // If not a direct symbol, search for matches
-            fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    searchSuggestions.innerHTML = '';
-                    
-                    if (data.length === 0) {
-                        searchSuggestions.innerHTML = '<div class="list-group-item">No results found. Try a different search term.</div>';
-                        return;
-                    }
-                    
-                    // If only one result, load it directly
-                    if (data.length === 1) {
-                        searchInput.value = `${data[0].symbol} - ${data[0].name}`;
-                        loadStockData(data[0].symbol);
-                        return;
-                    }
-                    
-                    // Otherwise show the suggestions
-                    data.forEach(stock => {
-                        const item = document.createElement('a');
-                        item.href = "#";
-                        item.className = 'list-group-item list-group-item-action';
-                        item.innerHTML = `
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${stock.symbol}</strong>
-                                    <div class="text-muted small">${stock.name}</div>
-                                </div>
-                                <span class="badge ${stock.symbol.includes('.NS') ? 'bg-info' : 'bg-primary'}">
-                                    ${stock.symbol.includes('.NS') ? 'IN' : 'US'}
-                                </span>
-                            </div>
-                        `;
-                        
-                        item.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            searchSuggestions.innerHTML = '';
-                            searchInput.value = `${stock.symbol} - ${stock.name}`;
-                            loadStockData(stock.symbol);
-                        });
-                        
-                        searchSuggestions.appendChild(item);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    searchSuggestions.innerHTML = '<div class="list-group-item text-danger">Error fetching results</div>';
-                });
-        }
-        
-        // Search button click handler
-        searchButton.addEventListener('click', performSearch);
-        
-        // Enter key press handler for search input
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                performSearch();
-            }
-        });
-        
-        // Stock example click handlers
-        stockExamples.forEach(example => {
+        // Initialize stock search examples
+        document.querySelectorAll('.stock-example').forEach(example => {
             example.addEventListener('click', function(e) {
                 e.preventDefault();
-                const symbol = this.getAttribute('data-symbol');
+                const symbol = this.dataset.symbol;
                 searchInput.value = symbol;
-                performSearch();
-                
-                // Add animation to the clicked example
-                this.classList.add('animate__animated', 'animate__pulse');
-                setTimeout(() => {
-                    this.classList.remove('animate__animated', 'animate__pulse');
-                }, 1000);
+                searchStock(symbol);
             });
         });
-        
-        // Add animation to search input on focus
-        searchInput.addEventListener('focus', function() {
-            this.parentElement.classList.add('shadow-lg');
-        });
-        
-        searchInput.addEventListener('blur', function() {
-            this.parentElement.classList.remove('shadow-lg');
-        });
-        
-        // Add hover effects to buttons
-        document.querySelectorAll('.btn').forEach(button => {
-            button.addEventListener('mouseenter', function() {
-                this.classList.add('float-animation');
-            });
             
-            button.addEventListener('mouseleave', function() {
-                this.classList.remove('float-animation');
-            });
-        });
-        
-        // Autocomplete for stock search
-        searchInput.addEventListener('input', debounce(function() {
-            const query = this.value.trim();
-            
-            if (query.length < 2) {
-                searchSuggestions.innerHTML = '';
-                return;
-            }
-            
-            // Fetch stock search results
-            fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    searchSuggestions.innerHTML = '';
-                    
-                    if (data.length === 0) {
-                        searchSuggestions.innerHTML = '<div class="list-group-item">No results found</div>';
-                        return;
-                    }
-                    
-                    data.forEach(stock => {
-                        const item = document.createElement('a');
-                        item.href = "#";
-                        item.className = 'list-group-item list-group-item-action';
-                        item.innerHTML = `
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${stock.symbol}</strong>
-                                    <div class="text-muted small">${stock.name}</div>
-                                </div>
-                                <span class="badge ${stock.symbol.includes('.NS') ? 'bg-info' : 'bg-primary'}">
-                                    ${stock.symbol.includes('.NS') ? 'IN' : 'US'}
-                                </span>
-                            </div>
-                        `;
-                        
-                        item.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            searchSuggestions.innerHTML = '';
-                            searchInput.value = `${stock.symbol} - ${stock.name}`;
-                            loadStockData(stock.symbol);
-                        });
-                        
-                        searchSuggestions.appendChild(item);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    searchSuggestions.innerHTML = '<div class="list-group-item text-danger">Error fetching results</div>';
-                });
-        }, 300));
-        
-        // Load stock data
-        function loadStockData(symbol) {
-            currentSymbol = symbol;
-            
-            // Loading is already shown in performSearch function
-            // Just update the symbol in the loading message
-            document.getElementById('loadingAnimation').querySelector('h4').textContent = `Fetching ${symbol} Data...`;
-            
-            // Update links
-            document.getElementById('analysisLink').href = `/stock_analysis/${symbol}`;
-            document.getElementById('thesisLink').href = `/investment_thesis/${symbol}`;
-            
-            // Fetch stock info
-            fetch(`/api/stock/info?symbol=${encodeURIComponent(symbol)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        showToast(`Error: ${data.error}`, 'danger');
-                        return;
-                    }
-                    
-                    // Update stock info
-                    document.getElementById('stockName').textContent = data.name;
-                    document.getElementById('stockSymbol').textContent = symbol;
-                    document.getElementById('stockExchange').textContent = data.exchange || 
-                        (symbol.includes('.NS') ? 'NSE (India)' : 'US Exchange');
-                    
-                    // Format price and change
-                    const price = typeof data.price === 'number' ? data.price.toFixed(2) : data.price;
-                    document.getElementById('stockPrice').textContent = `$${price}`;
-                    
-                    if (data.day_change && data.day_change_percent) {
-                        const isPositive = data.day_change > 0;
-                        document.getElementById('stockChange').innerHTML = `
-                            <span class="${isPositive ? 'text-success' : 'text-danger'}">
-                                <i class="fas ${isPositive ? 'fa-caret-up' : 'fa-caret-down'}"></i>
-                                ${data.day_change.toFixed(2)} (${data.day_change_percent.toFixed(2)}%)
-                            </span>
-                        `;
-                    }
-                    
-                    // Update stats
-                    document.getElementById('marketCap').textContent = formatLargeNumber(data.market_cap);
-                    document.getElementById('tableMarketCap').textContent = formatLargeNumber(data.market_cap);
-                    
-                    document.getElementById('peRatio').textContent = formatValue(data.pe_ratio);
-                    document.getElementById('tablePeRatio').textContent = formatValue(data.pe_ratio);
-                    
-                    document.getElementById('eps').textContent = formatValue(data.eps);
-                    document.getElementById('tableEps').textContent = formatValue(data.eps);
-                    
-                    document.getElementById('dividendYield').textContent = formatPercentage(data.dividend_yield);
-                    document.getElementById('tableDividendYield').textContent = formatPercentage(data.dividend_yield);
-                    
-                    document.getElementById('high52Week').textContent = `$${formatValue(data.fifty_two_week_high)}`;
-                    document.getElementById('low52Week').textContent = `$${formatValue(data.fifty_two_week_low)}`;
-                    
-                    document.getElementById('volume').textContent = formatLargeNumber(data.volume);
-                    document.getElementById('avgVolume').textContent = formatLargeNumber(data.avg_volume);
-                    
-                    document.getElementById('priceToBook').textContent = formatValue(data.price_to_book);
-                    document.getElementById('beta').textContent = formatValue(data.beta);
-                    
-                    document.getElementById('companyDescription').textContent = data.description || 'No description available';
-                    document.getElementById('sector').textContent = data.sector || 'N/A';
-                    document.getElementById('industry').textContent = data.industry || 'N/A';
-                    
-                    // Load chart data
-                    loadChartData(symbol, currentTimeRange);
-                    
-                    // Show stock results container with fade-in animation
-                    stockResultsContainer.classList.remove('d-none');
-                    stockResultsContainer.classList.add('fade-in');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('loadingAnimation').classList.add('d-none');
-                    searchButton.classList.remove('btn-pulse');
-                    showToast('Error loading stock data', 'danger');
-                });
-        }
-        
-        // Load chart data
-        function loadChartData(symbol, period = '1y', interval = '1d') {
-            // Show chart loading animation
-            const chartLoading = document.getElementById('chartLoading');
-            chartLoading.classList.remove('d-none');
-            
-            // Hide main loading animation if it's still visible
-            document.getElementById('loadingAnimation').classList.add('d-none');
-            
-            fetch(`/api/stock/data?symbol=${encodeURIComponent(symbol)}&period=${period}&interval=${interval}`)
-                .then(response => response.json())
-                .then(data => {
-                    // Hide chart loading animation
-                    chartLoading.classList.add('d-none');
-                    
-                    if (data.error) {
-                        console.error(`Error loading data for ${symbol}:`, data.error);
-                        showToast(data.error, 'warning');
-                        
-                        // Show chart error message
-                        document.getElementById('chartError').classList.remove('d-none');
-                        return;
-                    }
-                    
-                    // Check if we have enough data
-                    if (!data.dates || data.dates.length === 0 || !data.prices || data.prices.length === 0) {
-                        console.error(`No data available for ${symbol}`);
-                        showToast(`No historical data available for ${symbol}`, 'warning');
-                        // Show chart error message
-                        document.getElementById('chartError').classList.remove('d-none');
-                        return;
-                    }
-                    
-                    try {
-                        // Create price chart
-                        createPriceChart(data);
-                        
-                        // Update chart info
-                        updateChartInfo(data);
-                    } catch (e) {
-                        console.error('Error creating charts:', e);
-                        showToast('Error creating charts', 'danger');
-                        // Show chart error message
-                        document.getElementById('chartError').classList.remove('d-none');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('Error loading chart data', 'danger');
-                    // Hide chart loading animation
-                    document.getElementById('chartLoading').classList.add('d-none');
-                    // Show chart error message
-                    document.getElementById('chartError').classList.remove('d-none');
-                });
-        }
-        
-        // Update chart info with latest data
-        function updateChartInfo(data) {
-            if (!data || !data.prices || data.prices.length === 0) return;
-            
-            // Get the latest data point
-            const lastIndex = data.prices.length - 1;
-            
-            // Update chart info
-            document.getElementById('chartOpen').textContent = data.open && data.open[lastIndex] ? 
-                `$${formatValue(data.open[lastIndex])}` : 'N/A';
-                
-            document.getElementById('chartHigh').textContent = data.high && data.high[lastIndex] ? 
-                `$${formatValue(data.high[lastIndex])}` : 'N/A';
-                
-            document.getElementById('chartLow').textContent = data.low && data.low[lastIndex] ? 
-                `$${formatValue(data.low[lastIndex])}` : 'N/A';
-                
-            document.getElementById('chartClose').textContent = data.prices && data.prices[lastIndex] ? 
-                `$${formatValue(data.prices[lastIndex])}` : 'N/A';
-        }
-        
-        // Create price chart
-        function createPriceChart(data) {
-            // Check if we have valid data
-            if (!data || !data.dates || !data.prices || data.error) {
-                console.error('Invalid data for price chart:', data);
-                return;
-            }
-            
-            const ctx = document.getElementById('stockChart').getContext('2d');
-            
-            if (priceChart) {
-                priceChart.destroy();
-            }
-            
-            priceChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.dates,
-                    datasets: [{
-                        label: 'Price',
-                        data: data.prices,
-                        borderColor: '#4361ee',
-                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                label: function(context) {
-                                    return `Price: $${context.raw.toFixed(2)}`;
-                                }
-                            }
-                        },
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            grid: {
-                                borderDash: [2, 2]
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value.toFixed(2);
-                                }
-                            }
-                        }
-                    }
+        // Handle search button click
+        if (searchButton) {
+            searchButton.addEventListener('click', function() {
+                const query = searchInput.value.trim();
+                if (query.length > 0) {
+                    searchStock(query);
                 }
             });
         }
         
-        // Create moving averages chart
-        function createMAChart(data) {
-            // Check if we have valid data
-            if (!data || !data.dates || !data.prices || data.error) {
-                console.error('Invalid data for MA chart:', data);
-                return;
-            }
-            
-            const ctx = document.getElementById('maChart').getContext('2d');
-            
-            if (maChart) {
-                maChart.destroy();
-            }
-            
-            maChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.dates,
-                    datasets: [
-                        {
-                            label: 'Price',
-                            data: data.prices,
-                            borderColor: '#4361ee',
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.1
-                        },
-                        {
-                            label: '20-day MA',
-                            data: data.sma_20,
-                            borderColor: '#f72585',
-                            borderWidth: 1.5,
-                            fill: false,
-                            tension: 0.1
-                        },
-                        {
-                            label: '50-day MA',
-                            data: data.sma_50,
-                            borderColor: '#7209b7',
-                            borderWidth: 1.5,
-                            fill: false,
-                            tension: 0.1
-                        },
-                        {
-                            label: '200-day MA',
-                            data: data.sma_200,
-                            borderColor: '#4cc9f0',
-                            borderWidth: 1.5,
-                            fill: false,
-                            tension: 0.1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            grid: {
-                                borderDash: [2, 2]
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value.toFixed(2);
-                                }
-                            }
+        // Handle enter key in search input
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value.trim();
+                    if (query.length > 0) {
+                        searchStock(query);
                         }
                     }
-                }
             });
-        }
-        
-        // Create volume chart
-        function createVolumeChart(data) {
-            // Check if we have valid data
-            if (!data || !data.dates || !data.volumes || data.error) {
-                console.error('Invalid data for volume chart:', data);
-                return;
             }
             
-            const ctx = document.getElementById('volumeChart').getContext('2d');
-            
-            if (volumeChart) {
-                volumeChart.destroy();
-            }
-            
-            volumeChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.dates,
-                    datasets: [{
-                        label: 'Volume',
-                        data: data.volumes,
-                        backgroundColor: 'rgba(67, 97, 238, 0.5)',
-                        borderColor: '#4361ee',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                label: function(context) {
-                                    return `Volume: ${formatLargeNumber(context.raw)}`;
-                                }
-                            }
-                        },
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            grid: {
-                                borderDash: [2, 2]
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return formatLargeNumber(value);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Time period buttons
+        // Time period selector
         document.querySelectorAll('[data-period]').forEach(button => {
             button.addEventListener('click', function() {
+                // Remove active class from all period buttons
                 document.querySelectorAll('[data-period]').forEach(btn => {
                     btn.classList.remove('active');
                 });
+                
+                // Add active class to clicked button
                 this.classList.add('active');
                 
-                const period = this.getAttribute('data-period');
-                currentTimeRange = period;
+                // Get selected period
+                const period = this.dataset.period;
+                currentPeriod = period;
                 
+                // Fetch chart data
                 if (currentSymbol) {
-                    loadChartData(currentSymbol, period);
+                    fetchChartData(currentSymbol, period);
+                }
+                    });
+        });
+        
+        // Chart type selector
+        document.querySelectorAll('[data-chart-type]').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all chart type buttons
+                document.querySelectorAll('[data-chart-type]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Get selected chart type
+                chartType = this.dataset.chartType;
+        
+                // Update chart if data is already loaded
+                if (currentSymbol) {
+                    fetchChartData(currentSymbol, currentPeriod);
                 }
             });
         });
         
         // Retry chart button
-        document.getElementById('retryChartBtn').addEventListener('click', function() {
-            document.getElementById('chartError').classList.add('d-none');
-            if (currentSymbol) {
-                loadChartData(currentSymbol, currentTimeRange);
+        if (retryChartBtn) {
+            retryChartBtn.addEventListener('click', function() {
+                if (currentSymbol) {
+                    fetchChartData(currentSymbol, currentPeriod);
+                }
+            });
+        }
+        
+        // Function to search for a stock
+        function searchStock(query) {
+            // Clear previous results
+                searchSuggestions.innerHTML = '';
+            
+            // Show loading overlay
+            stockLoadingOverlay.style.display = 'flex';
+            stockResultsContainer.classList.add('d-none');
+            
+            // Fetch stock data
+            fetch(`/api/stock/info?symbol=${encodeURIComponent(query)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Stock not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update UI with stock data
+                    updateStockInfo(data);
+                    
+                    // Set current symbol
+                    currentSymbol = data.symbol;
+                    
+                    // Fetch chart data
+                    fetchChartData(data.symbol, currentPeriod);
+                    
+                    // Show results container
+                    stockResultsContainer.classList.remove('d-none');
+                    
+                    // Hide loading overlay
+                    stockLoadingOverlay.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    stockLoadingOverlay.style.display = 'none';
+                    showToast('Stock not found or error loading data', 'danger');
+                });
+        }
+        
+        // Function to fetch chart data
+        function fetchChartData(symbol, period) {
+            // Show chart loading
+            chartLoading.classList.remove('d-none');
+            chartError.classList.add('d-none');
+            
+            console.log(`Fetching chart data for ${symbol} with period: ${period}`);
+            
+            // Fetch historical stock data for the chart
+            fetch(`/api/stock/data?symbol=${encodeURIComponent(symbol)}&period=${period}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch chart data: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received chart data:', data);
+                    
+                    // Log the structure of the data
+                    if (data.dates && data.prices) {
+                        console.log('Data format: dates + prices arrays');
+                        console.log('Sample date:', data.dates[0]);
+                        console.log('Sample price:', data.prices[0]);
+                    } else if (data.ohlc) {
+                        console.log('Data format: ohlc array');
+                        console.log('Sample ohlc:', data.ohlc[0]);
+                    } else if (Array.isArray(data)) {
+                        console.log('Data format: array of objects');
+                        console.log('Sample item:', data[0]);
+                    } else {
+                        console.log('Unknown data format');
+                    }
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    // Update chart
+                    updateStockChart(data);
+                    
+                    // Update chart info
+                    updateChartInfo(data);
+                    
+                    // Hide chart loading
+                    chartLoading.classList.add('d-none');
+                })
+                .catch(error => {
+                    console.error('Error fetching chart data:', error);
+                    chartLoading.classList.add('d-none');
+                    chartError.classList.remove('d-none');
+                    
+                    // Add more descriptive error message to the UI
+                    const errorMessage = document.querySelector('#chartError p');
+                    if (errorMessage) {
+                        errorMessage.textContent = `We couldn't retrieve the historical data for this stock: ${error.message}`;
+                    }
+                });
+                    }
+                    
+        // Function to update stock info in the UI
+        function updateStockInfo(data) {
+            // Header info
+            document.getElementById('stockName').textContent = data.name || data.symbol;
+            document.getElementById('stockSymbol').textContent = data.symbol;
+            document.getElementById('stockExchange').textContent = data.exchange || '';
+                    
+            // Price info
+            document.getElementById('stockPrice').textContent = '$' + (data.price || 'N/A');
+            
+            // Change info
+            const changeEl = document.getElementById('stockChange');
+            if (data.change !== undefined && data.change_percent !== undefined) {
+                const changeClass = data.change >= 0 ? 'text-success' : 'text-danger';
+                const changeIcon = data.change >= 0 ? 'fa-caret-up' : 'fa-caret-down';
+                changeEl.innerHTML = `
+                    <div class="${changeClass}">
+                        <i class="fas ${changeIcon}"></i>
+                        ${data.change >= 0 ? '+' : ''}${data.change} (${data.change_percent}%)
+                    </div>
+                        `;
+            } else {
+                changeEl.textContent = 'N/A';
             }
+            
+            // Financial metrics
+            document.getElementById('marketCap').textContent = data.market_cap || 'N/A';
+            document.getElementById('peRatio').textContent = data.pe_ratio || 'N/A';
+            document.getElementById('eps').textContent = data.eps || 'N/A';
+            document.getElementById('dividendYield').textContent = data.dividend_yield || 'N/A';
+            document.getElementById('high52Week').textContent = '$' + (data.fifty_two_week_high || 'N/A');
+            document.getElementById('low52Week').textContent = '$' + (data.fifty_two_week_low || 'N/A');
+            document.getElementById('volume').textContent = data.volume || 'N/A';
+            document.getElementById('avgVolume').textContent = data.avg_volume || 'N/A';
+                    
+            // Company info
+            document.getElementById('companyDescription').textContent = data.description || 'No description available.';
+                    document.getElementById('sector').textContent = data.sector || 'N/A';
+                    document.getElementById('industry').textContent = data.industry || 'N/A';
+                    
+            // Links
+            if (addToWatchlistBtn) {
+                addToWatchlistBtn.dataset.symbol = data.symbol;
+                addToWatchlistBtn.dataset.name = data.name || data.symbol;
+            }
+            
+            const analysisLink = document.getElementById('analysisLink');
+            if (analysisLink) {
+                analysisLink.href = `/stock-analysis/${data.symbol}`;
+            }
+        }
+        
+        // Function to update chart info
+        function updateChartInfo(data) {
+            if (!data) return;
+            
+            let open, high, low, close;
+            
+            if (Array.isArray(data) && data.length > 0) {
+                // Format for data as array of objects with OHLC properties
+                const lastData = data[data.length - 1];
+                open = lastData.Open;
+                high = lastData.High;
+                low = lastData.Low;
+                close = lastData.Close;
+            } else if (data.ohlc && Array.isArray(data.ohlc) && data.ohlc.length > 0) {
+                // Format for data.ohlc
+                const lastData = data.ohlc[data.ohlc.length - 1];
+                open = lastData.open;
+                high = lastData.high;
+                low = lastData.low;
+                close = lastData.close;
+            } else if (data.dates && data.prices && data.dates.length > 0) {
+                // Format for data with separate arrays
+                const lastIndex = data.prices.length - 1;
+                close = data.prices[lastIndex];
+                
+                // We might not have OHLC data in this format
+                if (data.opens && data.highs && data.lows) {
+                    open = data.opens[lastIndex];
+                    high = data.highs[lastIndex];
+                    low = data.lows[lastIndex];
+                } else {
+                    // Use the close price as a fallback
+                    open = close;
+                    high = close;
+                    low = close;
+                }
+            }
+            
+            document.getElementById('chartOpen').textContent = open ? '$' + open.toFixed(2) : 'N/A';
+            document.getElementById('chartHigh').textContent = high ? '$' + high.toFixed(2) : 'N/A';
+            document.getElementById('chartLow').textContent = low ? '$' + low.toFixed(2) : 'N/A';
+            document.getElementById('chartClose').textContent = close ? '$' + close.toFixed(2) : 'N/A';
+        }
+        
+        // Function to update the stock chart
+        function updateStockChart(data) {
+            if (!data || data.error) {
+                chartError.classList.remove('d-none');
+                        return;
+                    }
+                    
+            // Extract chart data
+            let labels, prices, opens, highs, lows;
+                        
+            // Check if data is in the expected format
+            if (Array.isArray(data)) {
+                // Format for data as array of objects with OHLC properties
+                if (data.length === 0) {
+                    chartError.classList.remove('d-none');
+                    return;
+                }
+                labels = data.map(item => moment(item.Date));
+                prices = data.map(item => item.Close);
+                opens = data.map(item => item.Open);
+                highs = data.map(item => item.High);
+                lows = data.map(item => item.Low);
+            } else if (data.ohlc && Array.isArray(data.ohlc)) {
+                // Format for data.ohlc
+                if (data.ohlc.length === 0) {
+                    chartError.classList.remove('d-none');
+                    return;
+        }
+                labels = data.ohlc.map(item => moment(item.date));
+                prices = data.ohlc.map(item => item.close);
+                opens = data.ohlc.map(item => item.open);
+                highs = data.ohlc.map(item => item.high);
+                lows = data.ohlc.map(item => item.low);
+            } else if (data.dates && data.prices) {
+                // Format for data with separate arrays
+                if (data.dates.length === 0) {
+                    chartError.classList.remove('d-none');
+                    return;
+                }
+                labels = data.dates.map(date => moment(date));
+                prices = data.prices;
+                
+                // We don't have OHLC data in this format, so default to using price for candlestick
+                opens = prices.slice();
+                highs = prices.slice();
+                lows = prices.slice();
+            } else {
+                console.error('Unsupported data format', data);
+                chartError.classList.remove('d-none');
+                return;
+            }
+            
+            // Destroy existing chart if it exists
+            if (stockChart) {
+                stockChart.destroy();
+            }
+            
+            // Create new chart
+            const ctx = chartContainer.getContext('2d');
+            
+            if (chartType === 'line') {
+                // Line chart
+                stockChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                        labels: Array.isArray(data.dates) ? data.dates : labels.map(d => d.format('MMM DD')),
+                    datasets: [{
+                        label: 'Price',
+                            data: prices,
+                            borderColor: '#4e73df',
+                            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHitRadius: 10,
+                            pointHoverRadius: 5,
+                            pointHoverBackgroundColor: '#4e73df',
+                            pointHoverBorderColor: '#fff',
+                            pointHoverBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                            legend: {
+                                display: false
+                            },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                        return `$${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                    borderDash: [2],
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            } else {
+                // Simplified bar chart for now
+                const barData = [];
+                const barLabels = [];
+                
+                // Use only a subset of the data points to avoid overcrowding
+                const step = Math.max(1, Math.floor(prices.length / 30));
+                
+                for (let i = 0; i < prices.length; i += step) {
+                    barData.push(prices[i]);
+                    if (Array.isArray(data.dates)) {
+                        barLabels.push(data.dates[i]);
+                    } else if (labels[i] && typeof labels[i].format === 'function') {
+                        barLabels.push(labels[i].format('MMM DD'));
+                    } else {
+                        barLabels.push(`Day ${i+1}`);
+            }
+                }
+                
+                stockChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                        labels: barLabels,
+                    datasets: [{
+                            label: 'Stock Price',
+                            data: barData,
+                            backgroundColor: function(context) {
+                                // Color bars based on increase/decrease from previous value
+                                const index = context.dataIndex;
+                                if (index === 0) return 'rgba(40, 167, 69, 0.8)';
+                                return barData[index] >= barData[index-1] ? 
+                                    'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)';
+                            },
+                            borderColor: 'rgba(0, 0, 0, 0.1)',
+                            borderWidth: 1,
+                            barPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                            legend: {
+                                display: false
+                            },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                        return `Price: $${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                    borderDash: [2],
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                        return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        }
+        
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed bottom-0 end-0 m-3`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            const bsToast = new bootstrap.Toast(toast, {
+                delay: 3000
+            });
+            
+            bsToast.show();
+        
+            // Remove from DOM after hidden
+            toast.addEventListener('hidden.bs.toast', function() {
+                document.body.removeChild(toast);
         });
+        }
         
         // Add to watchlist button
+        if (addToWatchlistBtn) {
         addToWatchlistBtn.addEventListener('click', function() {
-            if (!currentSymbol) return;
+                const symbol = this.dataset.symbol;
+                const name = this.dataset.name;
             
-            const stockName = document.getElementById('stockName').textContent;
+                if (!symbol) return;
             
             fetch('/api/watchlist/add', {
                 method: 'POST',
@@ -1261,20 +1176,22 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    symbol: currentSymbol,
-                    name: stockName
+                        symbol: symbol,
+                        name: name
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast(`${currentSymbol} added to watchlist`, 'success');
-                    addToWatchlistBtn.innerHTML = '<i class="fas fa-check me-1"></i> Added to Watchlist';
-                    addToWatchlistBtn.classList.remove('btn-primary');
-                    addToWatchlistBtn.classList.add('btn-success');
-                    addToWatchlistBtn.disabled = true;
-                } else if (data.error === 'already_exists') {
-                    showToast(`${currentSymbol} is already in your watchlist`, 'info');
+                        showToast(`${symbol} added to watchlist`, 'success');
+                        
+                        // Update button
+                        this.innerHTML = '<i class="fas fa-check me-2"></i> Added to Watchlist';
+                        this.classList.remove('btn-modern-primary');
+                        this.classList.add('btn-success');
+                        this.disabled = true;
+                    } else {
+                        showToast(data.message || 'Failed to add to watchlist', 'danger');
                 }
             })
             .catch(error => {
@@ -1282,55 +1199,6 @@
                 showToast('Error adding to watchlist', 'danger');
             });
         });
-        
-        // Helper functions
-        function formatLargeNumber(number) {
-            if (!number || isNaN(number)) return 'N/A';
-            
-            if (number >= 1000000000) {
-                return `${(number / 1000000000).toFixed(2)}B`;
-            } else if (number >= 1000000) {
-                return `${(number / 1000000).toFixed(2)}M`;
-            } else if (number >= 1000) {
-                return `${(number / 1000).toFixed(2)}K`;
-            }
-            return number.toString();
-        }
-        
-        function formatPercentage(number) {
-            if (!number || isNaN(number)) return 'N/A';
-            return `${(number * 100).toFixed(2)}%`;
-        }
-        
-        function formatValue(value) {
-            if (!value || value === 'N/A' || isNaN(value)) return 'N/A';
-            return typeof value === 'number' ? value.toFixed(2) : value;
-        }
-        
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-        
-        // Check for direct stock symbol in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const symbolParam = urlParams.get('symbol');
-        if (symbolParam) {
-            searchInput.value = symbolParam;
-            loadStockData(symbolParam);
-        }
-        
-        // Update stock search link in navbar
-        const stockSearchLink = document.getElementById('stockSearchLink');
-        if (stockSearchLink) {
-            stockSearchLink.href = '/stock_search';
         }
     });
 </script>

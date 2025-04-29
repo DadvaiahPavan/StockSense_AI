@@ -37,11 +37,8 @@
                             <button class="btn btn-primary me-2 add-to-watchlist" data-symbol="{{ symbol }}" data-name="{{ stock_info.name }}">
                                 <i class="fas fa-plus me-1"></i> Add to Watchlist
                             </button>
-                            <a href="{{ url_for('stock_analysis', symbol=symbol) }}" class="btn btn-outline-primary me-2">
+                            <a href="{{ url_for('stock_analysis', symbol=symbol) }}" class="btn btn-outline-primary">
                                 <i class="fas fa-brain me-1"></i> AI Analysis
-                            </a>
-                            <a href="{{ url_for('investment_thesis', symbol=symbol) }}" class="btn btn-outline-info">
-                                <i class="fas fa-file-alt me-1"></i> Investment Thesis
                             </a>
                         </div>
                     </div>

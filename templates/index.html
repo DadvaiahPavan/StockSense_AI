@@ -21,16 +21,16 @@
                     Harness the power of artificial intelligence to analyze stocks, build strategies, and make informed investment decisions.
                 </p>
                 <p class="d-none d-md-block text-light mb-4 animate__animated animate__fadeInUp animate__delay-1s">
-                    Advanced AI algorithms provide real-time insights for both US and Indian markets.
+                    Advanced AI provide real-time insights for both US and Indian markets.
                 </p>
                 <div class="d-flex flex-column flex-sm-row gap-3 animate__animated animate__fadeInUp animate__delay-2s">
                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Get Started</a>
                     <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">Login</a>
                 </div>
             </div>
-            <div class="col-lg-6 d-none d-lg-block px-3 px-md-4 d-flex align-items-center justify-content-center">
+            <div class="col-lg-6 d-flex align-items-center justify-content-center px-3 px-md-4">
                 <img src="{{ url_for('static', filename='img/stocksense (2).png') }}" alt="StockSense AI Dashboard" 
-                     class="img-fluid hero-dashboard-img">
+                     class="img-fluid hero-dashboard-img d-block mx-auto">
             </div>
         </div>
     </div>
@@ -114,77 +114,17 @@
             <div class="col-lg-4">
                 <div class="how-it-works-step">
                     <div class="step-number">3</div>
-                    <h4>Make Informed Decisions</h4>
-                    <p>Use AI-generated investment theses and strategies to guide your decisions.</p>
-                    <img src="{{ url_for('static', filename='img/step3.svg') }}" alt="Make Decisions" class="img-fluid rounded shadow-sm">
+                    <h4>Stock Predictor</h4>
+                    <p>Use AI-powered Stock Predictor to forecast trends and guide your investment decisions.</p>
+                    <img src="{{ url_for('static', filename='img/step3.svg') }}" alt="Stock Predictor" class="img-fluid rounded shadow-sm">
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Testimonials Section -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold">What Our Users Say</h2>
-            <p class="lead text-muted">Trusted by investors worldwide</p>
-        </div>
-        
-        <div class="row">
-            <div class="col-lg-4 mb-4">
-                <div class="card h-100 border-0 shadow-sm testimonial-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="testimonial-avatar me-3">
-                                <img src="{{ url_for('static', filename='img/avatar1.svg') }}" alt="User Avatar">
-                            </div>
-                            <div>
-                                <h5 class="mb-0">Rajesh Sharma</h5>
-                                <p class="text-muted mb-0">Retail Investor</p>
-                            </div>
-                        </div>
-                        <p class="mb-0">"StockSense AI has transformed how I analyze Indian stocks. The AI insights are incredibly valuable and have helped me make better investment decisions."</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 mb-4">
-                <div class="card h-100 border-0 shadow-sm testimonial-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="testimonial-avatar me-3">
-                                <img src="{{ url_for('static', filename='img/avatar2.svg') }}" alt="User Avatar">
-                            </div>
-                            <div>
-                                <h5 class="mb-0">Sarah Johnson</h5>
-                                <p class="text-muted mb-0">Day Trader</p>
-                            </div>
-                        </div>
-                        <p class="mb-0">"The strategy builder is a game-changer. I've been able to backtest my trading strategies and refine them based on real data. Highly recommended!"</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 mb-4">
-                <div class="card h-100 border-0 shadow-sm testimonial-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="testimonial-avatar me-3">
-                                <img src="{{ url_for('static', filename='img/avatar3.svg') }}" alt="User Avatar">
-                            </div>
-                            <div>
-                                <h5 class="mb-0">Michael Chen</h5>
-                                <p class="text-muted mb-0">Financial Advisor</p>
-                            </div>
-                        </div>
-                        <p class="mb-0">"I use StockSense AI to generate investment theses for my clients. The AI-powered analysis saves me hours of research and provides valuable insights."</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+
+
 
 <!-- CTA Section -->
 <section class="py-5 bg-primary text-white">
@@ -211,6 +151,7 @@
         position: relative;
         color: white;
         overflow: hidden;
+        background-color: #070722;
     }
     
     .hero-overlay {
@@ -228,40 +169,21 @@
         z-index: 2;
     }
     
-    .hero-image-container {
-        position: relative;
-        z-index: 2;
-        transform: perspective(1000px) rotateY(-15deg);
-        transition: transform 0.5s ease;
-    }
-    
-    .hero-image-container:hover {
-        transform: perspective(1000px) rotateY(-5deg);
-    }
-    
     .hero-dashboard-img {
         max-width: 420px;
-        min-width: 260px;
-        width: 80%;
+        width: 100%;
         height: auto;
-        box-shadow: none !important;
-        border-radius: 0;
-        border: none !important;
-        outline: none !important;
-        background: none !important;
-        transform: none !important;
-        transition: none !important;
-        display: block;
-        margin: auto;
         filter: brightness(1.2);
-        opacity: 0.95;
-        transition: all 0.3s ease;
+        z-index: 2;
+        position: relative;
     }
     
-    .hero-dashboard-img:hover {
-        filter: brightness(1.3);
-        opacity: 1;
-        transform: perspective(1000px) rotateY(-5deg) rotateX(2deg) !important;
+    @media (max-width: 767.98px) {
+        .hero-dashboard-img {
+            max-width: 260px;
+            width: 70%;
+            margin-top: 2rem;
+        }
     }
     
     .feature-icon {

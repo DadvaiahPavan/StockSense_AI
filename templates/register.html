@@ -3,6 +3,15 @@
 {% block title %}Register - StockSense AI{% endblock %}
 
 {% block content %}
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Setting up your account...</div>
+    <div class="loading-progress">
+        <div id="loadingProgressBar" class="loading-progress-bar"></div>
+    </div>
+</div>
+
 <div class="auth-container">
     <div class="auth-wrapper">
         <div class="container">
@@ -13,13 +22,13 @@
                             <a href="{{ url_for('index') }}" class="d-inline-block mb-3">
                                 <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="StockSense AI Logo" height="60">
                             </a>
-                            <h2 class="fw-bold">Create Account</h2>
-                            <p class="text-muted">Join StockSense AI for AI-powered stock analysis</p>
+                            <h2 class="fw-bold">Create an Account</h2>
+                            <p class="text-muted">Start your investment journey today</p>
                         </div>
                         
-                        <form method="post" action="{{ url_for('register') }}" class="auth-form">
+                        <form method="post" action="{{ url_for('register') }}" class="auth-form" id="registerForm">
                             <div class="mb-3">
-                                <label for="username" class="form-label">Full Name</label>
+                                <label for="username" class="form-label">Username</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                                     <input type="text" class="form-control" id="username" name="username" required autofocus>
@@ -34,7 +43,7 @@
                                 </div>
                             </div>
                             
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <label for="password" class="form-label">Password</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
@@ -43,19 +52,12 @@
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
-                                <div class="password-strength mt-2" id="passwordStrength">
-                                    <div class="progress" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <small class="text-muted" id="passwordFeedback">Password strength</small>
-                                </div>
+                                <small class="form-text text-muted">Password must be at least 8 characters long</small>
                             </div>
                             
                             <div class="mb-4 form-check">
-                                <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
-                                <label class="form-check-label" for="terms">
-                                    I agree to the <a href="#" class="text-primary">Terms of Service</a> and <a href="#" class="text-primary">Privacy Policy</a>
-                                </label>
+                                <input type="checkbox" class="form-check-input" id="agree" name="agree" required>
+                                <label class="form-check-label" for="agree">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
                             </div>
                             
                             <div class="d-grid">
@@ -153,48 +155,29 @@
             this.querySelector('i').classList.toggle('fa-eye-slash');
         });
         
-        // Password strength meter
-        const progressBar = document.querySelector('#passwordStrength .progress-bar');
-        const feedback = document.getElementById('passwordFeedback');
+        // Show loading animation on form submit
+        const registerForm = document.getElementById('registerForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const progressBar = document.getElementById('loadingProgressBar');
         
-        passwordInput.addEventListener('input', function() {
-            const password = this.value;
-            let strength = 0;
-            let message = '';
-            
-            if (password.length >= 8) {
-                strength += 25;
+        registerForm.addEventListener('submit', function(e) {
+            // Validate form
+            if (!this.checkValidity()) {
+                return;
             }
             
-            if (password.match(/[A-Z]/)) {
-                strength += 25;
-            }
+            // Show loading overlay
+            loadingOverlay.classList.add('show');
             
-            if (password.match(/[0-9]/)) {
-                strength += 25;
-            }
-            
-            if (password.match(/[^A-Za-z0-9]/)) {
-                strength += 25;
-            }
-            
-            progressBar.style.width = strength + '%';
-            
-            if (strength < 25) {
-                progressBar.className = 'progress-bar bg-danger';
-                message = 'Very weak';
-            } else if (strength < 50) {
-                progressBar.className = 'progress-bar bg-warning';
-                message = 'Weak';
-            } else if (strength < 75) {
-                progressBar.className = 'progress-bar bg-info';
-                message = 'Moderate';
-            } else {
-                progressBar.className = 'progress-bar bg-success';
-                message = 'Strong';
-            }
-            
-            feedback.textContent = message;
+            // Simulate progress for better UX
+            let progress = 0;
+            const interval = setInterval(function() {
+                progress += Math.random() * 15;
+                if (progress > 90) {
+                    clearInterval(interval);
+                }
+                progressBar.style.width = Math.min(progress, 90) + '%';
+            }, 500);
         });
     });
 </script>

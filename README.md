@@ -1,4 +1,4 @@
-# StockSage - AI-Powered Stock Analysis Platform
+# StockSense - AI-Powered Stock Analysis Platform
 
 A comprehensive, real-time stock analysis platform with AI-powered insights for both Indian and US markets.
 
@@ -15,14 +15,13 @@ A comprehensive, real-time stock analysis platform with AI-powered insights for 
 
 ## Tech Stack
 
-- **Frontend**: HTML, CSS, JavaScript, Bootstrap
+- **Frontend**: HTML, CSS, JavaScript, Bootstrap, Chart.js
 - **Backend**: Python Flask
 - **Authentication**: Flask-Login with SQLite
 - **AI Engine**: Groq API (LLaMA or Mixtral models)
 - **Data Sources**: 
   - yfinance for real-time stock data
   - Playwright for web scraping (news, sentiment)
-- **Visualization**: Chart.js for dynamic graphs
 - **Database**: SQLite
 
 ## Setup Instructions
@@ -50,12 +49,14 @@ A comprehensive, real-time stock analysis platform with AI-powered insights for 
 
 - `/static` - CSS, JS, and image assets
 - `/templates` - HTML templates
-- `/models` - Database models
 - `/services` - AI agents and data services
-- `/utils` - Helper functions
 - `app.py` - Main Flask application
-- `config.py` - Application configuration
-- `database.py` - Database setup and management
+- `init_db.py` - Database initialization
+- `schema.sql` - Database schema
+
+## Detailed Documentation
+
+For a comprehensive explanation of the project architecture, implementation details, and how each feature works, please see the [Project Report](project_report.md).
 
 ## License
 

@@ -2,6 +2,37 @@
 
 {% block title %}Strategy Builder - StockSense AI{% endblock %}
 
+{% block extra_css %}
+<style>
+    .backtest-summary-card {
+        background-color: #f8f9fa;
+        border-left: 4px solid #6c5ce7;
+    }
+    
+    .strategy-info-card {
+        background-color: #f8f9fa;
+        border-left: 4px solid #00b894;
+    }
+    
+    .trade-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .trade-list-item {
+        border-left: 3px solid transparent;
+    }
+    
+    .trade-list-item.buy {
+        border-left-color: #00b894;
+    }
+    
+    .trade-list-item.sell {
+        border-left-color: #ff7675;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="strategy-builder-container py-4">
     <div class="container">
@@ -69,9 +100,6 @@
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold">Backtest Results</h5>
                         <div class="strategy-actions" id="strategyActions" style="display: none;">
-                            <button class="btn btn-sm btn-outline-primary me-2" id="saveStrategyBtn">
-                                <i class="fas fa-save me-1"></i> Save Strategy
-                            </button>
                             <button class="btn btn-sm btn-outline-secondary" id="exportResultsBtn">
                                 <i class="fas fa-download me-1"></i> Export Results
                             </button>
@@ -131,25 +159,25 @@
                                         <h6 class="fw-bold mb-3">Strategy Information</h6>
                                         <div class="d-flex justify-content-between mb-2">
                                             <div>Symbol:</div>
-                                            <div class="fw-bold" id="resultSymbol"></div>
+                                            <div class="fw-bold" id="strategySymbol"></div>
                                         </div>
                                         <div class="d-flex justify-content-between mb-2">
                                             <div>Strategy:</div>
-                                            <div class="fw-bold" id="resultStrategy"></div>
+                                            <div class="fw-bold" id="strategyName"></div>
                                         </div>
                                         <div class="d-flex justify-content-between mb-2">
                                             <div>Period:</div>
-                                            <div class="fw-bold" id="resultPeriod"></div>
+                                            <div class="fw-bold" id="strategyPeriod"></div>
                                         </div>
-                                        <div id="resultParameters"></div>
+                                        <div id="strategyParams"></div>
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="row mb-4">
                                 <div class="col-12">
-                                    <div class="chart-container">
-                                        <canvas id="performanceChart" height="300"></canvas>
+                                    <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                                        <canvas id="performanceChart"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -214,85 +242,15 @@
     </div>
 </div>
 
-<!-- Save Strategy Modal -->
-<div class="modal fade" id="saveStrategyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Save Strategy</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="saveStrategyForm">
-                    <div class="mb-3">
-                        <label for="strategyName" class="form-label">Strategy Name</label>
-                        <input type="text" class="form-control" id="strategyName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Strategy Details</label>
-                        <div class="strategy-details-preview p-3 rounded">
-                            <div class="d-flex justify-content-between mb-2">
-                                <div>Symbol:</div>
-                                <div class="fw-bold" id="previewSymbol"></div>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <div>Strategy Type:</div>
-                                <div class="fw-bold" id="previewStrategy"></div>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <div>Performance:</div>
-                                <div class="fw-bold" id="previewPerformance"></div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmSaveStrategy">Save Strategy</button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .strategy-builder-container {
-        background-color: #f8f9fa;
-        min-height: calc(100vh - 56px - 174px); /* Subtract navbar and footer height */
-    }
-    
-    .strategy-description {
-        min-height: 40px;
-    }
-    
-    .backtest-summary-card {
-        background-color: #f8f9ff;
-        border-left: 4px solid #4e73df;
-    }
-    
-    .strategy-info-card {
-        background-color: #f8f9fa;
-        border-left: 4px solid #1cc88a;
-    }
-    
-    .predefined-strategy-card {
-        transition: transform 0.3s ease;
-    }
-    
-    .predefined-strategy-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .strategy-details-preview {
-        background-color: #f8f9fa;
-        border-left: 4px solid #4e73df;
-    }
-</style>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Add Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<!-- Add jsPDF library for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize date inputs with default values
@@ -300,99 +258,89 @@
         const oneYearAgo = new Date();
         oneYearAgo.setFullYear(today.getFullYear() - 1);
         
-        document.getElementById('startDate').valueAsDate = oneYearAgo;
         document.getElementById('endDate').valueAsDate = today;
+        document.getElementById('startDate').valueAsDate = oneYearAgo;
         
-        // Strategy type selection
+        // DOM elements
+        const strategyForm = document.getElementById('strategyForm');
+        const stockSymbol = document.getElementById('stockSymbol');
+        const symbolSuggestions = document.getElementById('symbolSuggestions');
         const strategyType = document.getElementById('strategyType');
         const strategyDescription = document.getElementById('strategyDescription');
         const strategyParameters = document.getElementById('strategyParameters');
+        const backtestBtn = document.getElementById('backtestBtn');
+        const backtestLoading = document.getElementById('backtestLoading');
+        const noBacktestData = document.getElementById('noBacktestData');
+        const backtestResults = document.getElementById('backtestResults');
+        const strategyActions = document.getElementById('strategyActions');
         
-        // Strategy data from backend
-        const strategies = {{ strategies|tojson }};
+        // Global variables to store backtest data
+        let currentBacktestData = null;
+        let selectedStrategy = null;
         
+        // Load strategy descriptions
+        const strategies = [
+            { id: 'sma_crossover', name: 'SMA Crossover', description: 'Buy when the short-term moving average crosses above the long-term moving average, and sell when it crosses below.', parameters: [
+                { name: 'short_window', label: 'Short Window', type: 'number', default: 20, min: 5, max: 50 },
+                { name: 'long_window', label: 'Long Window', type: 'number', default: 50, min: 20, max: 200 }
+            ]},
+            { id: 'rsi', name: 'RSI Strategy', description: 'Buy when RSI falls below the oversold level, and sell when it rises above the overbought level.', parameters: [
+                { name: 'rsi_period', label: 'RSI Period', type: 'number', default: 14, min: 7, max: 30 },
+                { name: 'oversold', label: 'Oversold Level', type: 'number', default: 30, min: 10, max: 40 },
+                { name: 'overbought', label: 'Overbought Level', type: 'number', default: 70, min: 60, max: 90 }
+            ]},
+            { id: 'macd', name: 'MACD Strategy', description: 'Buy when MACD line crosses above the signal line, and sell when it crosses below.', parameters: [
+                { name: 'fast_period', label: 'Fast Period', type: 'number', default: 12, min: 8, max: 20 },
+                { name: 'slow_period', label: 'Slow Period', type: 'number', default: 26, min: 20, max: 40 },
+                { name: 'signal_period', label: 'Signal Period', type: 'number', default: 9, min: 5, max: 15 }
+            ]},
+            { id: 'bollinger_bands', name: 'Bollinger Bands', description: 'Buy when price touches the lower band, and sell when it touches the upper band.', parameters: [
+                { name: 'window', label: 'Window', type: 'number', default: 20, min: 10, max: 50 },
+                { name: 'num_std', label: 'Number of Standard Deviations', type: 'number', default: 2, min: 1, max: 3, step: 0.1 }
+            ]}
+        ];
+        
+        // Update strategy description and parameters when strategy type changes
         strategyType.addEventListener('change', function() {
-            const selectedStrategy = strategies.find(s => s.id === this.value);
+            const strategyId = this.value;
+            selectedStrategy = strategies.find(s => s.id === strategyId);
             
             if (selectedStrategy) {
                 strategyDescription.textContent = selectedStrategy.description;
                 
                 // Generate parameter inputs
                 strategyParameters.innerHTML = '';
-                
-                if (selectedStrategy.parameters) {
-                    const parametersTitle = document.createElement('h6');
-                    parametersTitle.className = 'fw-bold mb-3 mt-4';
-                    parametersTitle.textContent = 'Strategy Parameters';
-                    strategyParameters.appendChild(parametersTitle);
+                selectedStrategy.parameters.forEach(param => {
+                    const paramDiv = document.createElement('div');
+                    paramDiv.className = 'mb-3';
                     
-                    for (const [paramName, paramConfig] of Object.entries(selectedStrategy.parameters)) {
-                        const formGroup = document.createElement('div');
-                        formGroup.className = 'mb-3';
-                        
-                        const label = document.createElement('label');
-                        label.className = 'form-label';
-                        label.setAttribute('for', `param_${paramName}`);
-                        label.textContent = paramConfig.description;
-                        
-                        let input;
-                        
-                        if (paramConfig.type === 'text') {
-                            input = document.createElement('textarea');
-                            input.className = 'form-control';
-                            input.rows = 5;
-                        } else {
-                            input = document.createElement('input');
-                            input.className = 'form-control';
-                            
-                            if (paramConfig.type === 'int' || paramConfig.type === 'float') {
-                                input.type = 'number';
-                                
-                                if (paramConfig.min !== undefined) {
-                                    input.min = paramConfig.min;
-                                }
-                                
-                                if (paramConfig.max !== undefined) {
-                                    input.max = paramConfig.max;
-                                }
-                                
-                                if (paramConfig.type === 'float') {
-                                    input.step = '0.1';
-                                }
-                            }
-                        }
-                        
-                        input.id = `param_${paramName}`;
-                        input.name = paramName;
-                        input.value = paramConfig.default !== undefined ? paramConfig.default : '';
-                        
-                        formGroup.appendChild(label);
-                        formGroup.appendChild(input);
-                        strategyParameters.appendChild(formGroup);
-                    }
-                }
+                    const label = document.createElement('label');
+                    label.className = 'form-label';
+                    label.htmlFor = param.name;
+                    label.textContent = param.label;
+                    
+                    const input = document.createElement('input');
+                    input.type = param.type;
+                    input.className = 'form-control';
+                    input.id = param.name;
+                    input.name = param.name;
+                    input.value = param.default;
+                    
+                    if (param.min !== undefined) input.min = param.min;
+                    if (param.max !== undefined) input.max = param.max;
+                    if (param.step !== undefined) input.step = param.step;
+                    
+                    paramDiv.appendChild(label);
+                    paramDiv.appendChild(input);
+                    strategyParameters.appendChild(paramDiv);
+                });
             } else {
                 strategyDescription.textContent = '';
                 strategyParameters.innerHTML = '';
             }
         });
         
-        // Select predefined strategy buttons
-        document.querySelectorAll('.select-strategy').forEach(button => {
-            button.addEventListener('click', function() {
-                const strategyId = this.dataset.strategy;
-                strategyType.value = strategyId;
-                strategyType.dispatchEvent(new Event('change'));
-                
-                // Scroll to strategy form
-                document.querySelector('.strategy-builder-container').scrollIntoView({ behavior: 'smooth' });
-            });
-        });
-        
-        // Stock symbol search
-        const stockSymbol = document.getElementById('stockSymbol');
-        const symbolSuggestions = document.getElementById('symbolSuggestions');
-        
+        // Stock symbol autocomplete
         stockSymbol.addEventListener('input', function() {
             const query = this.value.trim();
             
@@ -401,27 +349,19 @@
                 return;
             }
             
-            // Fetch stock search results
+            // Fetch stock suggestions
             fetch(`/api/stock/search?query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     symbolSuggestions.innerHTML = '';
                     
-                    data.forEach(stock => {
-                        const item = document.createElement('a');
-                        item.href = '#';
+                    data.slice(0, 5).forEach(stock => {
+                        const item = document.createElement('button');
+                        item.type = 'button';
                         item.className = 'list-group-item list-group-item-action';
-                        item.innerHTML = `
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${stock.symbol}</strong>
-                                    <div class="text-muted small">${stock.name}</div>
-                                </div>
-                            </div>
-                        `;
+                        item.textContent = `${stock.symbol} - ${stock.name}`;
                         
-                        item.addEventListener('click', function(e) {
-                            e.preventDefault();
+                        item.addEventListener('click', function() {
                             stockSymbol.value = stock.symbol;
                             symbolSuggestions.innerHTML = '';
                         });
@@ -431,21 +371,7 @@
                 });
         });
         
-        // Hide suggestions when clicking outside
-        document.addEventListener('click', function(e) {
-            if (e.target !== stockSymbol && e.target !== symbolSuggestions) {
-                symbolSuggestions.innerHTML = '';
-            }
-        });
-        
-        // Backtest form submission
-        const strategyForm = document.getElementById('strategyForm');
-        const backtestBtn = document.getElementById('backtestBtn');
-        const backtestLoading = document.getElementById('backtestLoading');
-        const noBacktestData = document.getElementById('noBacktestData');
-        const backtestResults = document.getElementById('backtestResults');
-        const strategyActions = document.getElementById('strategyActions');
-        
+        // Run backtest
         strategyForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -471,41 +397,30 @@
             
             // Collect parameters
             const parameters = {};
-            const selectedStrategy = strategies.find(s => s.id === strategy);
-            
-            if (selectedStrategy && selectedStrategy.parameters) {
-                for (const [paramName, paramConfig] of Object.entries(selectedStrategy.parameters)) {
-                    const paramInput = document.getElementById(`param_${paramName}`);
-                    
-                    if (paramInput) {
-                        let value = paramInput.value;
-                        
-                        if (paramConfig.type === 'int') {
-                            value = parseInt(value);
-                        } else if (paramConfig.type === 'float') {
-                            value = parseFloat(value);
-                        }
-                        
-                        parameters[paramName] = value;
+            if (selectedStrategy) {
+                selectedStrategy.parameters.forEach(param => {
+                    const input = document.getElementById(param.name);
+                    if (input) {
+                        parameters[param.name] = input.type === 'number' ? parseFloat(input.value) : input.value;
                     }
-                }
+                });
             }
             
             // Show loading
             backtestBtn.disabled = true;
-            backtestLoading.style.display = 'block';
-            noBacktestData.style.display = 'none';
+            backtestLoading.style.display = 'flex';
             backtestResults.style.display = 'none';
+            noBacktestData.style.display = 'none';
             
             // Run backtest
-            fetch('/api/strategy/backtest', {
+            fetch('/api/backtest', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     symbol: symbol,
-                    strategy_type: strategy,
+                    strategy: strategy,
                     parameters: parameters,
                     start_date: startDate,
                     end_date: endDate
@@ -517,17 +432,14 @@
                 backtestBtn.disabled = false;
                 backtestLoading.style.display = 'none';
                 
-                if (data.error) {
-                    alert(`Error: ${data.error}`);
-                    noBacktestData.style.display = 'block';
-                    return;
-                }
+                // Store backtest data for export
+                currentBacktestData = data;
                 
                 // Show results
                 backtestResults.style.display = 'block';
-                strategyActions.style.display = 'block';
+                strategyActions.style.display = 'flex';
                 
-                // Update summary metrics
+                // Update metrics
                 document.getElementById('totalReturn').textContent = `${(data.metrics.total_return * 100).toFixed(2)}%`;
                 document.getElementById('buyHoldReturn').textContent = `${(data.metrics.buy_hold_return * 100).toFixed(2)}%`;
                 document.getElementById('totalTrades').textContent = data.metrics.total_trades;
@@ -535,137 +447,146 @@
                 document.getElementById('maxDrawdown').textContent = `${(data.metrics.max_drawdown * 100).toFixed(2)}%`;
                 
                 // Update strategy info
-                document.getElementById('resultSymbol').textContent = data.symbol;
-                document.getElementById('resultStrategy').textContent = selectedStrategy ? selectedStrategy.name : data.strategy;
-                document.getElementById('resultPeriod').textContent = `${data.start_date} to ${data.end_date}`;
+                document.getElementById('strategySymbol').textContent = data.symbol;
+                document.getElementById('strategyName').textContent = selectedStrategy ? selectedStrategy.name : data.strategy;
+                document.getElementById('strategyPeriod').textContent = `${data.start_date} to ${data.end_date}`;
                 
                 // Update parameters
-                const resultParameters = document.getElementById('resultParameters');
-                resultParameters.innerHTML = '';
+                const paramsList = document.getElementById('strategyParams');
+                paramsList.innerHTML = '';
                 
-                if (data.parameters) {
-                    for (const [paramName, paramValue] of Object.entries(data.parameters)) {
-                        const paramRow = document.createElement('div');
-                        paramRow.className = 'd-flex justify-content-between mb-2';
-                        
-                        const paramLabel = document.createElement('div');
-                        paramLabel.textContent = paramName + ':';
-                        
-                        const paramValueEl = document.createElement('div');
-                        paramValueEl.className = 'fw-bold';
-                        paramValueEl.textContent = paramValue;
-                        
-                        paramRow.appendChild(paramLabel);
-                        paramRow.appendChild(paramValueEl);
-                        resultParameters.appendChild(paramRow);
-                    }
-                }
+                Object.entries(data.parameters).forEach(([key, value]) => {
+                    const li = document.createElement('li');
+                    li.className = 'd-flex justify-content-between';
+                    li.innerHTML = `
+                        <span>${key}:</span>
+                        <span class="fw-bold">${value}</span>
+                    `;
+                    paramsList.appendChild(li);
+                });
                 
-                // Update trades table
-                const tradesTable = document.getElementById('tradesTable');
-                tradesTable.innerHTML = '';
+                // Update trade list
+                const tradesList = document.getElementById('tradesTable');
+                tradesList.innerHTML = '';
                 
-                if (data.trades && data.trades.length > 0) {
-                    data.trades.forEach(trade => {
-                        const row = document.createElement('tr');
-                        
-                        row.innerHTML = `
-                            <td>${trade.entry_date}</td>
-                            <td>$${trade.entry_price.toFixed(2)}</td>
-                            <td>${trade.exit_date}</td>
-                            <td>$${trade.exit_price.toFixed(2)}</td>
-                            <td class="${trade.profit >= 0 ? 'text-success' : 'text-danger'}">
-                                ${trade.profit >= 0 ? '+' : ''}$${trade.profit.toFixed(2)}
-                            </td>
-                            <td class="${trade.profit_percent >= 0 ? 'text-success' : 'text-danger'}">
-                                ${trade.profit_percent >= 0 ? '+' : ''}${trade.profit_percent.toFixed(2)}%
-                            </td>
-                        `;
-                        
-                        tradesTable.appendChild(row);
-                    });
-                } else {
-                    const emptyRow = document.createElement('tr');
-                    emptyRow.innerHTML = '<td colspan="6" class="text-center">No trades executed</td>';
-                    tradesTable.appendChild(emptyRow);
-                }
+                data.trades.forEach(trade => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${trade.entry_date}</td>
+                        <td>$${trade.entry_price.toFixed(2)}</td>
+                        <td>${trade.exit_date}</td>
+                        <td>$${trade.exit_price.toFixed(2)}</td>
+                        <td class="${trade.profit >= 0 ? 'text-success' : 'text-danger'}">
+                            ${trade.profit >= 0 ? '+' : ''}$${trade.profit.toFixed(2)}
+                        </td>
+                        <td class="${trade.profit_percent >= 0 ? 'text-success' : 'text-danger'}">
+                            ${trade.profit_percent >= 0 ? '+' : ''}${trade.profit_percent.toFixed(2)}%
+                        </td>
+                    `;
+                    
+                    tradesList.appendChild(row);
+                });
                 
-                // Initialize performance chart
+                // Create performance chart
                 const performanceCtx = document.getElementById('performanceChart').getContext('2d');
                 
-                // Destroy existing chart if it exists and has a destroy method
+                // Properly check if chart exists before destroying
                 if (window.performanceChart && typeof window.performanceChart.destroy === 'function') {
                     window.performanceChart.destroy();
                 }
                 
-                window.performanceChart = new Chart(performanceCtx, {
-                    type: 'line',
-                    data: {
-                        labels: data.chart_data.dates,
-                        datasets: [
-                            {
-                                label: 'Strategy Returns',
-                                data: data.chart_data.cumulative_strategy_returns,
-                                borderColor: '#4e73df',
-                                backgroundColor: 'rgba(78, 115, 223, 0.05)',
-                                borderWidth: 2,
-                                pointRadius: 0,
-                                pointHoverRadius: 5,
-                                tension: 0.4,
-                                fill: true
-                            },
-                            {
-                                label: 'Buy & Hold Returns',
-                                data: data.chart_data.cumulative_returns,
-                                borderColor: '#1cc88a',
-                                backgroundColor: 'transparent',
-                                borderWidth: 2,
-                                pointRadius: 0,
-                                pointHoverRadius: 5,
-                                tension: 0.4
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                callbacks: {
-                                    label: function(context) {
-                                        return `${context.dataset.label}: ${((context.raw - 1) * 100).toFixed(2)}%`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            y: {
-                                beginAtZero: false,
-                                grid: {
-                                    borderDash: [2],
-                                    color: 'rgba(0, 0, 0, 0.05)'
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        return ((value - 1) * 100).toFixed(0) + '%';
-                                    }
-                                }
-                            }
+                // Make sure chart data exists before creating chart
+                if (data.chart_data && data.chart_data.dates) {
+                    try {
+                        // Map the data correctly based on what's available in the API response
+                        const strategyReturns = data.chart_data.strategy_returns || data.chart_data.cumulative_strategy_returns;
+                        const buyHoldReturns = data.chart_data.buy_hold_returns || data.chart_data.cumulative_returns;
+                        
+                        if (!strategyReturns || !buyHoldReturns) {
+                            console.error('Missing return data for chart');
+                            return;
                         }
+                        
+                        window.performanceChart = new Chart(performanceCtx, {
+                            type: 'line',
+                            data: {
+                                labels: data.chart_data.dates,
+                                datasets: [
+                                    {
+                                        label: 'Strategy',
+                                        data: strategyReturns,
+                                        borderColor: '#6c5ce7',
+                                        backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                                        borderWidth: 2,
+                                        fill: true,
+                                        tension: 0.1
+                                    },
+                                    {
+                                        label: 'Buy & Hold',
+                                        data: buyHoldReturns,
+                                        borderColor: '#00b894',
+                                        borderWidth: 2,
+                                        borderDash: [5, 5],
+                                        fill: false,
+                                        tension: 0.1
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                        labels: {
+                                            usePointStyle: true,
+                                            padding: 20
+                                        }
+                                    },
+                                    tooltip: {
+                                        mode: 'index',
+                                        intersect: false,
+                                        callbacks: {
+                                            label: function(context) {
+                                                return `${context.dataset.label}: ${((context.raw - 1) * 100).toFixed(2)}%`;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        grid: {
+                                            display: false
+                                        }
+                                    },
+                                    y: {
+                                        grid: {
+                                            borderDash: [2],
+                                            color: 'rgba(0, 0, 0, 0.05)'
+                                        },
+                                        ticks: {
+                                            callback: function(value) {
+                                                return ((value - 1) * 100).toFixed(0) + '%';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        
+                        // Force a resize to ensure chart renders properly
+                        window.setTimeout(() => {
+                            if (window.performanceChart) {
+                                window.performanceChart.resize();
+                            }
+                        }, 100);
+                    } catch (chartError) {
+                        console.error('Error creating chart:', chartError);
                     }
-                });
-                
-                // Save strategy modal data
-                document.getElementById('previewSymbol').textContent = data.symbol;
-                document.getElementById('previewStrategy').textContent = selectedStrategy ? selectedStrategy.name : data.strategy;
-                document.getElementById('previewPerformance').textContent = `${(data.metrics.total_return * 100).toFixed(2)}%`;
+                } else {
+                    console.error('Chart data is missing or incomplete:', data.chart_data);
+                }
                 
                 // Scroll to results
                 backtestResults.scrollIntoView({ behavior: 'smooth' });
@@ -679,36 +600,147 @@
             });
         });
         
-        // Save strategy button
-        const saveStrategyBtn = document.getElementById('saveStrategyBtn');
-        const saveStrategyModal = new bootstrap.Modal(document.getElementById('saveStrategyModal'));
-        
-        saveStrategyBtn.addEventListener('click', function() {
-            saveStrategyModal.show();
-        });
-        
-        // Confirm save strategy
-        const confirmSaveStrategy = document.getElementById('confirmSaveStrategy');
-        
-        confirmSaveStrategy.addEventListener('click', function() {
-            const strategyName = document.getElementById('strategyName').value.trim();
-            
-            if (!strategyName) {
-                alert('Please enter a strategy name');
-                return;
-            }
-            
-            // In a real app, this would save the strategy to the database
-            alert(`Strategy "${strategyName}" saved successfully!`);
-            saveStrategyModal.hide();
-        });
-        
         // Export results button
         const exportResultsBtn = document.getElementById('exportResultsBtn');
         
         exportResultsBtn.addEventListener('click', function() {
-            // In a real app, this would export the results to CSV or PDF
-            alert('Results exported successfully!');
+            if (!currentBacktestData) {
+                alert('No backtest data to export');
+                return;
+            }
+            
+            try {
+                // Generate PDF using jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Add title
+                doc.setFontSize(20);
+                doc.text('Strategy Backtest Report', 105, 15, { align: 'center' });
+                
+                // Add date
+                doc.setFontSize(10);
+                doc.text(`Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 105, 22, { align: 'center' });
+                
+                // Add strategy info
+                doc.setFontSize(14);
+                doc.text('Strategy Information', 14, 35);
+                
+                doc.setFontSize(11);
+                doc.text(`Symbol: ${currentBacktestData.symbol}`, 14, 45);
+                doc.text(`Strategy: ${selectedStrategy ? selectedStrategy.name : currentBacktestData.strategy}`, 14, 52);
+                doc.text(`Period: ${currentBacktestData.start_date} to ${currentBacktestData.end_date}`, 14, 59);
+                
+                // Add parameters
+                doc.setFontSize(14);
+                doc.text('Strategy Parameters', 14, 70);
+                
+                let yPos = 80;
+                if (currentBacktestData.parameters) {
+                    Object.entries(currentBacktestData.parameters).forEach(([key, value]) => {
+                        doc.setFontSize(11);
+                        doc.text(`${key}: ${value}`, 14, yPos);
+                        yPos += 7;
+                    });
+                }
+                
+                // Add performance metrics
+                doc.setFontSize(14);
+                doc.text('Performance Metrics', 14, yPos + 10);
+                
+                doc.setFontSize(11);
+                if (currentBacktestData.metrics) {
+                    const metrics = currentBacktestData.metrics;
+                    if (metrics.total_return !== undefined) {
+                        doc.text(`Total Return: ${(metrics.total_return * 100).toFixed(2)}%`, 14, yPos + 20);
+                    }
+                    if (metrics.buy_hold_return !== undefined) {
+                        doc.text(`Buy & Hold Return: ${(metrics.buy_hold_return * 100).toFixed(2)}%`, 14, yPos + 27);
+                    }
+                    if (metrics.total_trades !== undefined) {
+                        doc.text(`Total Trades: ${metrics.total_trades}`, 14, yPos + 34);
+                    }
+                    if (metrics.win_rate !== undefined) {
+                        doc.text(`Win Rate: ${(metrics.win_rate * 100).toFixed(2)}%`, 14, yPos + 41);
+                    }
+                    if (metrics.max_drawdown !== undefined) {
+                        doc.text(`Max Drawdown: ${(metrics.max_drawdown * 100).toFixed(2)}%`, 14, yPos + 48);
+                    }
+                }
+                
+                // Add trade list
+                doc.addPage();
+                doc.setFontSize(14);
+                doc.text('Trade List', 14, 15);
+                
+                // Create table for trades
+                if (currentBacktestData.trades && currentBacktestData.trades.length > 0) {
+                    // Determine trade data structure
+                    const sampleTrade = currentBacktestData.trades[0];
+                    let tableColumn, tableRows;
+                    
+                    if (sampleTrade.entry_date && sampleTrade.exit_date) {
+                        // Format for completed trades with entry/exit
+                        tableColumn = ["Entry Date", "Entry Price", "Exit Date", "Exit Price", "Profit", "Profit %"];
+                        tableRows = currentBacktestData.trades.map(trade => [
+                            trade.entry_date,
+                            `$${Number(trade.entry_price).toFixed(2)}`,
+                            trade.exit_date || 'N/A',
+                            trade.exit_price ? `$${Number(trade.exit_price).toFixed(2)}` : 'N/A',
+                            trade.profit ? `$${Number(trade.profit).toFixed(2)}` : 'N/A',
+                            trade.profit_percent ? `${Number(trade.profit_percent).toFixed(2)}%` : 'N/A'
+                        ]);
+                    } else if (sampleTrade.date && sampleTrade.action) {
+                        // Format for trade signals
+                        tableColumn = ["Date", "Action", "Price"];
+                        tableRows = currentBacktestData.trades.map(trade => [
+                            trade.date,
+                            trade.action,
+                            trade.price ? `$${Number(trade.price).toFixed(2)}` : 'N/A'
+                        ]);
+                    } else {
+                        // Generic format
+                        tableColumn = ["Trade Details"];
+                        tableRows = currentBacktestData.trades.map(trade => [
+                            JSON.stringify(trade)
+                        ]);
+                    }
+                    
+                    doc.autoTable({
+                        head: [tableColumn],
+                        body: tableRows,
+                        startY: 25,
+                        theme: 'grid',
+                        styles: { fontSize: 10 },
+                        headStyles: { fillColor: [108, 92, 231] },
+                        alternateRowStyles: { fillColor: [240, 240, 240] }
+                    });
+                } else {
+                    doc.setFontSize(11);
+                    doc.text('No trades were executed during the backtest period.', 14, 30);
+                }
+                
+                // Add chart image if available
+                if (window.performanceChart) {
+                    try {
+                        doc.addPage();
+                        doc.setFontSize(14);
+                        doc.text('Performance Chart', 14, 15);
+                        
+                        const chartImg = document.getElementById('performanceChart').toDataURL('image/png');
+                        doc.addImage(chartImg, 'PNG', 10, 25, 190, 100);
+                    } catch (chartError) {
+                        console.error('Error adding chart to PDF:', chartError);
+                        doc.text('Chart could not be included in the PDF.', 14, 30);
+                    }
+                }
+                
+                // Save the PDF
+                doc.save(`${currentBacktestData.symbol}_${selectedStrategy ? selectedStrategy.name : currentBacktestData.strategy}_backtest.pdf`);
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please check the console for details.');
+            }
         });
     });
 </script>

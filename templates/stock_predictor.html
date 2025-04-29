@@ -1,0 +1,641 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Predictor - StockSense AI{% endblock %}
+
+{% block content %}
+<div class="stock-predictor-container py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="fw-bold mb-3" data-aos="fade-up">Stock Movement Predictor</h1>
+                <p class="lead text-muted mb-4" data-aos="fade-up" data-aos-delay="100">
+                    Enter a stock symbol to get AI-powered predictions on whether the stock is likely to go up or down, 
+                    with a detailed explanation based on technical indicators.
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-5 mb-4 mb-lg-0" data-aos="fade-right">
+                <div class="card border-0 shadow-sm h-100 modern-card">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0 fw-bold">Stock Symbol</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="stockPredictorForm">
+                            <div class="mb-4">
+                                <label for="stockSymbol" class="form-label">Enter Stock Symbol</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="stockSymbol" placeholder="e.g. AAPL, MSFT, GOOGL" required>
+                                    <button type="submit" class="btn btn-modern-primary">
+                                        <i class="fas fa-chart-line me-1"></i> Predict
+                                    </button>
+                                </div>
+                                <small class="text-muted">US stocks: AAPL, MSFT, GOOGL | Indian stocks: RELIANCE.NS, TCS.NS</small>
+                            </div>
+                        </form>
+                        
+                        <div id="loadingIndicator" class="text-center py-5 d-none">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mb-0">Analyzing stock data and generating prediction...</p>
+                        </div>
+                        
+                        <div id="predictionError" class="alert alert-danger d-none" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <span id="errorMessage">Error message here</span>
+                        </div>
+                        
+                        <div id="predictionResult" class="d-none">
+                            <div class="prediction-header d-flex align-items-center">
+                                <div class="stock-logo me-3">
+                                    <i class="fas fa-chart-line fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4 class="mb-0 fw-bold stock-name">Stock Name</h4>
+                                    <div class="text-muted stock-symbol">Symbol</div>
+                                </div>
+                            </div>
+                            
+                            <div class="prediction-details mt-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <div class="price-info">
+                                            <div class="text-muted mb-1">Current Price</div>
+                                            <h3 class="fw-bold mb-0 stock-price">$0.00</h3>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="prediction-badge p-3 rounded text-center">
+                                            <div class="text-muted mb-1">Prediction</div>
+                                            <div class="d-flex justify-content-center">
+                                                <div class="prediction-icon me-2">
+                                                    <i class="fas fa-arrow-up fa-2x prediction-icon-up d-none text-success"></i>
+                                                    <i class="fas fa-arrow-down fa-2x prediction-icon-down d-none text-danger"></i>
+                                                </div>
+                                                <h3 class="fw-bold mb-0 prediction-direction">Up</h3>
+                                            </div>
+                                            <div class="prediction-confidence mt-1">
+                                                Confidence: <span class="confidence-value">75%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-7" data-aos="fade-left">
+                <div class="card border-0 shadow-sm h-100 modern-card">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0 fw-bold">AI Explanation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="explanationPlaceholder" class="text-center py-5">
+                            <img src="{{ url_for('static', filename='img/prediction-placeholder.svg') }}" alt="Prediction" class="img-fluid mb-3" style="max-height: 200px;">
+                            <h5 class="text-muted">Enter a stock symbol to get an AI-powered prediction and explanation</h5>
+                        </div>
+                        
+                        <div id="explanationContent" class="d-none">
+                            <div class="prediction-chart-container mb-4">
+                                <canvas id="predictionChart" height="200"></canvas>
+                            </div>
+                            
+                            <div class="explanation-container">
+                                <div id="explanation-sections" class="mb-4">
+                                    <!-- This will be populated dynamically -->
+                                </div>
+                            </div>
+                            
+                            <h6 class="fw-bold mt-4 mb-3">Technical Indicators</h6>
+                            <div class="technical-indicators">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Indicator</th>
+                                                <th>Signal</th>
+                                                <th>Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="indicatorsTable">
+                                            <!-- Indicators will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 text-end">
+                                <small class="text-muted">Last updated: <span class="timestamp">2025-04-25 12:00:00</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm modern-card" data-aos="fade-up">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0 fw-bold">How It Works</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="how-it-works-step">
+                                    <div class="step-number">1</div>
+                                    <h5 class="fw-bold">Data Collection</h5>
+                                    <p>We collect real-time stock data including price history, volume, and market information.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="how-it-works-step">
+                                    <div class="step-number">2</div>
+                                    <h5 class="fw-bold">Technical Analysis</h5>
+                                    <p>Our algorithm analyzes technical indicators like RSI, MACD, and moving averages to generate a prediction.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="how-it-works-step">
+                                    <div class="step-number">3</div>
+                                    <h5 class="fw-bold">AI Explanation</h5>
+                                    <p>AI model generates a detailed explanation of the prediction in plain language.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-4" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Disclaimer:</strong> These predictions are based on technical analysis and should not be considered as financial advice. Always do your own research before making investment decisions.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stock-predictor-container {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 56px - 174px);
+    }
+    
+    .stock-logo {
+        width: 50px;
+        height: 50px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+    }
+    
+    .prediction-badge {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .prediction-direction {
+        font-size: 1.5rem;
+    }
+    
+    .prediction-icon-up {
+        color: var(--success);
+    }
+    
+    .prediction-icon-down {
+        color: var(--danger);
+    }
+    
+    .prediction-confidence {
+        font-size: 0.9rem;
+    }
+    
+    .how-it-works-step {
+        text-align: center;
+        padding: 20px;
+        transition: transform 0.3s ease;
+    }
+    
+    .how-it-works-step:hover {
+        transform: translateY(-10px);
+    }
+    
+    .step-number {
+        width: 50px;
+        height: 50px;
+        background-color: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0 auto 20px;
+    }
+    
+    .explanation-container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .explanation-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .explanation-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .explanation-section h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--primary);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding-bottom: 0.5rem;
+    }
+    
+    .explanation-section ul {
+        padding-left: 1.5rem;
+    }
+    
+    .explanation-section ul li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .explanation-section p {
+        line-height: 1.6;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dark-mode .explanation-container {
+        background-color: #2a2d3e;
+    }
+    
+    .dark-mode .explanation-section h4 {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .technical-indicators .table {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .signal-bullish {
+        color: var(--success);
+        font-weight: 500;
+    }
+    
+    .signal-bearish {
+        color: var(--danger);
+        font-weight: 500;
+    }
+    
+    .signal-neutral {
+        color: var(--warning);
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stockPredictorForm = document.getElementById('stockPredictorForm');
+        const stockSymbolInput = document.getElementById('stockSymbol');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const predictionError = document.getElementById('predictionError');
+        const errorMessage = document.getElementById('errorMessage');
+        const predictionResult = document.getElementById('predictionResult');
+        const explanationPlaceholder = document.getElementById('explanationPlaceholder');
+        const explanationContent = document.getElementById('explanationContent');
+        
+        // Chart.js configuration for dark/light mode
+        const updateChartOptions = () => {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            return {
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                        },
+                        ticks: {
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            borderDash: [2],
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                if (!context.raw) return '';
+                                return `$${context.raw.toFixed(2)}`;
+                            }
+                        }
+                    },
+                    annotation: {
+                        annotations: {
+                            line1: {
+                                type: 'line',
+                                xMin: 'today',
+                                xMax: 'today',
+                                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                label: {
+                                    content: 'Today',
+                                    enabled: true,
+                                    position: 'top',
+                                    backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+                                    color: isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)'
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        };
+        
+        let predictionChart = null;
+        
+        stockPredictorForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const symbol = stockSymbolInput.value.trim();
+            if (!symbol) {
+                return;
+            }
+            
+            // Show loading indicator
+            loadingIndicator.classList.remove('d-none');
+            predictionError.classList.add('d-none');
+            predictionResult.classList.add('d-none');
+            explanationPlaceholder.classList.remove('d-none');
+            explanationContent.classList.add('d-none');
+            
+            // Destroy previous chart if exists
+            if (predictionChart) {
+                predictionChart.destroy();
+                predictionChart = null;
+            }
+            
+            // Call prediction API
+            fetch(`/api/predict-stock/${symbol}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading indicator
+                    loadingIndicator.classList.add('d-none');
+                    
+                    // Check for error
+                    if (data.error) {
+                        predictionError.classList.remove('d-none');
+                        errorMessage.textContent = data.error;
+                        return;
+                    }
+                    
+                    // Update prediction result
+                    predictionResult.classList.remove('d-none');
+                    explanationPlaceholder.classList.add('d-none');
+                    explanationContent.classList.remove('d-none');
+                    
+                    // Update stock info
+                    document.querySelector('.stock-name').textContent = data.company_name;
+                    document.querySelector('.stock-symbol').textContent = data.symbol;
+                    document.querySelector('.stock-price').textContent = `$${data.current_price.toFixed(2)}`;
+                    
+                    // Update prediction
+                    document.querySelector('.prediction-direction').textContent = data.prediction === 'up' ? 'Up' : 'Down';
+                    document.querySelector('.confidence-value').textContent = `${data.confidence}%`;
+                    
+                    // Show appropriate icon
+                    if (data.prediction === 'up') {
+                        document.querySelector('.prediction-icon-up').classList.remove('d-none');
+                        document.querySelector('.prediction-icon-down').classList.add('d-none');
+                        document.querySelector('.prediction-badge').style.backgroundColor = 'rgba(28, 200, 138, 0.1)';
+                    } else {
+                        document.querySelector('.prediction-icon-up').classList.add('d-none');
+                        document.querySelector('.prediction-icon-down').classList.remove('d-none');
+                        document.querySelector('.prediction-badge').style.backgroundColor = 'rgba(231, 74, 59, 0.1)';
+                    }
+                    
+                    // Update explanation with formatted sections
+                    const explanationSections = document.getElementById('explanation-sections');
+                    explanationSections.innerHTML = '';
+                    
+                    // Parse the explanation into sections
+                    const parsedExplanation = parseExplanation(data.explanation);
+                    
+                    // Render each section
+                    Object.keys(parsedExplanation).forEach(sectionName => {
+                        const sectionContent = parsedExplanation[sectionName];
+                        const sectionDiv = document.createElement('div');
+                        sectionDiv.className = 'explanation-section';
+                        
+                        const sectionTitle = document.createElement('h4');
+                        sectionTitle.textContent = sectionName;
+                        sectionDiv.appendChild(sectionTitle);
+                        
+                        // Check if content is a list (bullet points)
+                        if (Array.isArray(sectionContent)) {
+                            const ul = document.createElement('ul');
+                            sectionContent.forEach(item => {
+                                const li = document.createElement('li');
+                                li.textContent = item;
+                                ul.appendChild(li);
+                            });
+                            sectionDiv.appendChild(ul);
+                        } else {
+                            const p = document.createElement('p');
+                            p.textContent = sectionContent;
+                            sectionDiv.appendChild(p);
+                        }
+                        
+                        explanationSections.appendChild(sectionDiv);
+                    });
+                    
+                    // Update technical indicators table
+                    const indicatorsTable = document.getElementById('indicatorsTable');
+                    indicatorsTable.innerHTML = '';
+                    
+                    data.analysis_factors.forEach(factor => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${factor.factor}</td>
+                            <td class="signal-${factor.signal}">${factor.signal.toUpperCase()}</td>
+                            <td>${typeof factor.value === 'number' ? factor.value.toFixed(2) : factor.value}</td>
+                        `;
+                        indicatorsTable.appendChild(row);
+                    });
+                    
+                    // Update timestamp
+                    document.querySelector('.timestamp').textContent = data.timestamp;
+                    
+                    // Create prediction chart
+                    if (data.visualization_data) {
+                        const ctx = document.getElementById('predictionChart').getContext('2d');
+                        
+                        // Find the index where historical data ends and prediction begins
+                        const todayIndex = data.visualization_data.dates.findIndex((date, index) => 
+                            data.visualization_data.predicted[index] !== null);
+                        
+                        // Set the annotation position
+                        const chartOptions = updateChartOptions();
+                        if (chartOptions.plugins && chartOptions.plugins.annotation) {
+                            chartOptions.plugins.annotation.annotations.line1.xMin = todayIndex;
+                            chartOptions.plugins.annotation.annotations.line1.xMax = todayIndex;
+                        }
+                        
+                        predictionChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: data.visualization_data.dates,
+                                datasets: [
+                                    {
+                                        label: 'Historical Price',
+                                        data: data.visualization_data.prices,
+                                        borderColor: '#4e73df',
+                                        backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                                        borderWidth: 2,
+                                        pointRadius: 1,
+                                        pointHoverRadius: 5,
+                                        tension: 0.4,
+                                        fill: false
+                                    },
+                                    {
+                                        label: 'Predicted Price',
+                                        data: data.visualization_data.predicted,
+                                        borderColor: data.prediction === 'up' ? '#1cc88a' : '#e74a3b',
+                                        backgroundColor: data.prediction === 'up' ? 'rgba(28, 200, 138, 0.1)' : 'rgba(231, 74, 59, 0.1)',
+                                        borderWidth: 2,
+                                        borderDash: [5, 3],
+                                        pointRadius: 2,
+                                        pointHoverRadius: 5,
+                                        tension: 0.4,
+                                        fill: false
+                                    }
+                                ]
+                            },
+                            options: chartOptions
+                        });
+                    }
+                })
+                .catch(error => {
+                    loadingIndicator.classList.add('d-none');
+                    predictionError.classList.remove('d-none');
+                    errorMessage.textContent = `Something went wrong: ${error.message}`;
+                });
+        });
+        
+        // Update chart theme if dark mode changes
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', function() {
+                if (predictionChart) {
+                    const options = updateChartOptions();
+                    predictionChart.options.scales.x.grid.color = options.scales.x.grid.color;
+                    predictionChart.options.scales.x.ticks.color = options.scales.x.ticks.color;
+                    predictionChart.options.scales.y.grid.color = options.scales.y.grid.color;
+                    predictionChart.options.scales.y.ticks.color = options.scales.y.ticks.color;
+                    predictionChart.options.plugins.legend.labels.color = options.plugins.legend.labels.color;
+                    predictionChart.update();
+                }
+            });
+        }
+
+        // Function to parse the explanation text into structured sections
+        function parseExplanation(explanation) {
+            const sections = {
+                'Summary': '',
+                'Key Technical Indicators': [],
+                'Market Context': '',
+                'Conclusion': ''
+            };
+            
+            // Split by section markers
+            const summaryMatch = explanation.match(/\*\*Summary\*\*([\s\S]*?)(?=\*\*Key Technical Indicators|\*\*Market Context)/i);
+            if (summaryMatch) {
+                sections['Summary'] = summaryMatch[1].trim();
+            }
+            
+            const indicatorsMatch = explanation.match(/\*\*Key Technical Indicators\*\*([\s\S]*?)(?=\*\*Market Context)/i);
+            if (indicatorsMatch) {
+                // Extract bullet points
+                const bulletPoints = indicatorsMatch[1].split(/•|\*/g).filter(Boolean).map(point => point.trim());
+                sections['Key Technical Indicators'] = bulletPoints;
+            }
+            
+            const marketMatch = explanation.match(/\*\*Market Context\*\*([\s\S]*?)(?=\*\*Conclusion)/i);
+            if (marketMatch) {
+                sections['Market Context'] = marketMatch[1].trim();
+            }
+            
+            const conclusionMatch = explanation.match(/\*\*Conclusion\*\*([\s\S]*?)$/i);
+            if (conclusionMatch) {
+                sections['Conclusion'] = conclusionMatch[1].trim();
+            }
+            
+            // If no structured format found, try to create a reasonable division
+            if (!summaryMatch && !indicatorsMatch) {
+                const paragraphs = explanation.split('\n\n').filter(p => p.trim().length > 0);
+                
+                if (paragraphs.length >= 3) {
+                    sections['Summary'] = paragraphs[0];
+                    
+                    // Check for bullet points in the middle paragraphs
+                    const middleText = paragraphs.slice(1, -1).join('\n\n');
+                    const bullets = middleText.split(/•|\*/).filter(Boolean).map(point => point.trim());
+                    
+                    if (bullets.length > 1) {
+                        sections['Key Technical Indicators'] = bullets;
+                    } else {
+                        // If no bullet points, split the middle section
+                        const midPoint = Math.floor(paragraphs.length / 2);
+                        sections['Key Technical Indicators'] = [paragraphs[midPoint]];
+                        sections['Market Context'] = paragraphs[midPoint + 1] || '';
+                    }
+                    
+                    sections['Conclusion'] = paragraphs[paragraphs.length - 1];
+                } else {
+                    // Fallback for very short explanations
+                    sections['Summary'] = explanation;
+                }
+            }
+            
+            return sections;
+        }
+    });
+</script>
+{% endblock %} 
