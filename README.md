@@ -6,7 +6,7 @@ StockSense AI — an intelligent, full-stack stock market analysis platform that
 
 StockSense AI is a web-based AI platform that integrates real-time stock market data, sentiment analysis, and large language model intelligence (Groq + LLaMA/Mixtral) to deliver personalized analysis, backtesting tools, and a seamless user interface. It supports both Indian and US stock markets and features a modular architecture designed with Flask, Python, and SQLite.
 
-![StockSense AI](https://i.ibb.co/p6MngcY4/diagram-export-4-29-2025-4-29-50-PM.png)
+![StockSense AI](https://i.ibb.co/Xxkxxhb8/Screenshot-2025-04-29-155527.png)
 
 ## Live Demo
 
@@ -34,33 +34,55 @@ StockSense AI is a web-based AI platform that integrates real-time stock market 
 ##  Architecture
 ![StockSense AI](https://i.ibb.co/p6MngcY4/diagram-export-4-29-2025-4-29-50-PM.png)
 
-1. Clone this repository
-2. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-3. Install Playwright browsers:
-   ```
-   playwright install
-   ```
-4. Create a `.env` file with your Groq API key:
-   ```
-   GROQ_API_KEY=your_api_key_here
-   ```
-5. Run the application:
-   ```
-   python app.py
-   ```
-6. Access the application at `http://localhost:5000`
 
-## Project Structure
+## Technologies Used
+Flask (Python)
 
-- `/static` - CSS, JS, and image assets
-- `/templates` - HTML templates
-- `/services` - AI agents and data services
-- `app.py` - Main Flask application
-- `init_db.py` - Database initialization
-- `schema.sql` - Database schema
+SQLite
+
+Bootstrap 5 + HTML5 + JavaScript
+
+Chart.js for visualizations
+
+yfinance (stock data)
+
+Playwright (news scraping)
+
+Groq API with LLaMA/Mixtral models (AI processing)
+
+Pandas, NumPy, Matplotlib (backtesting tools)
+
+AJAX (async data requests)
+
+dotenv (secure secrets management)
+
+
+## Project Highlights
+Modular Python architecture: service-based organization (stock_service, ai_service, etc.)
+
+Prompt engineering techniques for high-quality AI analysis
+
+Real-time charts & dynamic rendering
+
+Error handling for API limits and scraping timeouts
+
+Plan for future integrations: WebSocket updates, crypto/option modules
+
+## Contributing
+We welcome contributions to enhance StockSense AI!
+
+Fork the repo
+
+Create a feature branch (git checkout -b feature/AmazingFeature)
+
+Commit changes (git commit -m 'Add awesome feature')
+
+Push to your branch (git push origin feature/AmazingFeature)
+
+Open a Pull Request
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Detailed Documentation
 
