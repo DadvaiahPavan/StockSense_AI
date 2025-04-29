@@ -84,10 +84,6 @@ Open a Pull Request
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
 
-## Detailed Documentation
-
-For a comprehensive explanation of the project architecture, implementation details, and how each feature works, please see the [Project Report](project_report.md).
-
 ## License
 
 MIT
