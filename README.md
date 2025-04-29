@@ -6,7 +6,7 @@ StockSense AI — an intelligent, full-stack stock market analysis platform that
 
 StockSense AI is a web-based AI platform that integrates real-time stock market data, sentiment analysis, and large language model intelligence (Groq + LLaMA/Mixtral) to deliver personalized analysis, backtesting tools, and a seamless user interface. It supports both Indian and US stock markets and features a modular architecture designed with Flask, Python, and SQLite.
 
-![StockSense AI](./images/Screenshot 2025-04-29 155527.png)
+![StockSense Screenshot](images/Screenshot-2025-04-29-155527.png)
 
 ## Live Demo
 
@@ -32,7 +32,7 @@ StockSense AI is a web-based AI platform that integrates real-time stock market 
 📱 Responsive UI: Built with Bootstrap, AJAX, and Chart.js for charts
 
 ##  Architecture
-![StockSense AI](https://i.ibb.co/p6MngcY4/diagram-export-4-29-2025-4-29-50-PM.png)
+![Architecture Diagram](images/diagram-export-4-29-2025-4_29_50-PM.png)
 
 
 ## Technologies Used
